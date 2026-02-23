@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Казино</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -11,20 +12,29 @@
             padding: 0; 
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            overscroll-behavior: none;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #000000;
             color: #ffffff;
-            min-height: 100vh;
             padding: 15px;
-            overflow-x: hidden;
             -webkit-user-select: none;
             user-select: none;
         }
         .container { 
             max-width: 500px; 
             margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .balance-card {
@@ -34,7 +44,6 @@
             margin-bottom: 15px;
             box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
             border: 2px solid #ffffff;
-            transition: all 0.3s ease;
         }
         .balance-label {
             font-size: 11px;
@@ -51,19 +60,12 @@
             margin: 8px 0;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
-        .bet-amount {
-            font-size: 22px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-top: 8px;
-        }
         
         .slots-container {
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
             padding: 25px 15px;
             border-radius: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
             border: 2px solid #333333;
         }
         .slots {
@@ -110,73 +112,77 @@
             box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4);
             transition: all 0.3s ease;
             margin-bottom: 15px;
-            touch-action: manipulation;
         }
         .spin-btn:active {
             transform: scale(0.97);
-            box-shadow: 0 3px 15px rgba(255, 255, 255, 0.3);
         }
         .spin-btn:disabled {
             background: #333333;
             color: #666666;
             cursor: not-allowed;
-            box-shadow: none;
         }
         
-        .bet-input-container {
+        .bet-input-section {
             background: #1a1a1a;
-            padding: 15px;
+            padding: 18px;
             border-radius: 15px;
             margin-bottom: 15px;
-            border: 2px solid #333333;
+            border: 2px solid #ffffff;
         }
-        .bet-input-label {
-            font-size: 12px;
+        .bet-label {
+            font-size: 13px;
             color: #ffffff;
-            margin-bottom: 8px;
-            opacity: 0.8;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+        .bet-input-wrapper {
+            position: relative;
+            margin-bottom: 12px;
         }
         .bet-input {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 15px 50px 15px 15px;
+            border-radius: 12px;
             border: 2px solid #ffffff;
             background: #000000;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             text-align: center;
-            transition: all 0.3s ease;
         }
         .bet-input:focus {
             outline: none;
-            border-color: #ffffff;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
         }
-        
-        .bet-controls {
+        .currency-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            pointer-events: none;
+        }
+        .bet-buttons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-bottom: 15px;
         }
-        .bet-btn {
-            padding: 14px;
-            border-radius: 12px;
+        .bet-quick {
+            padding: 12px 8px;
+            border-radius: 10px;
             border: 2px solid #ffffff;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
-            background: #1a1a1a;
+            background: #000000;
             color: #ffffff;
             transition: all 0.3s ease;
-            touch-action: manipulation;
         }
-        .bet-btn:active {
-            transform: scale(0.95);
+        .bet-quick:active {
             background: #ffffff;
             color: #000000;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transform: scale(0.95);
         }
         
         .payouts {
@@ -184,6 +190,7 @@
             padding: 18px;
             border-radius: 15px;
             border: 2px solid #333333;
+            margin-bottom: 20px;
         }
         .payouts-title {
             font-size: 16px;
@@ -219,13 +226,12 @@
             box-shadow: 0 10px 50px rgba(255, 255, 255, 0.5);
             transition: all 0.4s ease;
             min-width: 260px;
+            pointer-events: none;
         }
         .result-popup.show {
             transform: translate(-50%, -50%) scale(1);
         }
         .result-popup.win {
-            border-color: #ffffff;
-            box-shadow: 0 10px 60px rgba(255, 255, 255, 0.8);
             animation: pulse 0.6s ease-in-out;
         }
         @keyframes pulse {
@@ -239,8 +245,6 @@
         <div class="balance-card">
             <div class="balance-label">💰 Ваш баланс</div>
             <div class="balance-amount" id="balance">0 💎</div>
-            <div class="balance-label">Текущая ставка</div>
-            <div class="bet-amount" id="bet">10,000 💎</div>
         </div>
 
         <div class="slots-container">
@@ -252,16 +256,25 @@
             <button class="spin-btn" id="spinBtn">🎰 КРУТИТЬ</button>
         </div>
 
-        <div class="bet-input-container">
-            <div class="bet-input-label">💵 Введите сумму ставки:</div>
-            <input type="number" class="bet-input" id="betInput" placeholder="10000" min="10000" step="1000">
-        </div>
-
-        <div class="bet-controls">
-            <button class="bet-btn" data-mult="0.5">x0.5 📉</button>
-            <button class="bet-btn" data-mult="2">x2 📈</button>
-            <button class="bet-btn" data-mult="5">x5 🚀</button>
-            <button class="bet-btn" data-mult="10">x10 💎</button>
+        <div class="bet-input-section">
+            <div class="bet-label">💵 Укажите вашу ставку:</div>
+            <div class="bet-input-wrapper">
+                <input 
+                    type="number" 
+                    class="bet-input" 
+                    id="betInput" 
+                    placeholder="Введите сумму"
+                    min="10000"
+                    step="1000"
+                    inputmode="numeric">
+                <span class="currency-icon">💎</span>
+            </div>
+            <div class="bet-buttons">
+                <button class="bet-quick" data-amount="10000">10K</button>
+                <button class="bet-quick" data-amount="50000">50K</button>
+                <button class="bet-quick" data-amount="100000">100K</button>
+                <button class="bet-quick" data-amount="500000">500K</button>
+            </div>
         </div>
 
         <div class="payouts">
@@ -280,13 +293,25 @@
     <div class="result-popup" id="resultMsg"></div>
 
     <script>
+        // КРИТИЧНО: Инициализация Telegram WebApp
         let tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         
-        // КРИТИЧНО: Запрещаем закрытие приложения
+        // БЛОКИРУЕМ ВСЁ ЧТО МОЖЕТ ВЫЗВАТЬ ВЫЛЕТ
         tg.disableVerticalSwipes();
         tg.enableClosingConfirmation();
+        tg.MainButton.hide();
+        
+        // Запрещаем скролл страницы
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // Блокируем все дефолтные действия
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.classList.contains('bet-input')) return;
+            e.preventDefault();
+        }, { passive: false });
 
         let BALANCE = 0;
         let BET = 10000;
@@ -306,57 +331,66 @@
             CUSTOM_ID = url.get('custom_id') || '';
             BALANCE = parseInt(url.get('tokens')) || 0;
             
-            console.log('✅ Параметры загружены:', {USER_ID, CUSTOM_ID, BALANCE});
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('balance').textContent = `${BALANCE.toLocaleString('ru-RU')} 💎`;
-            document.getElementById('bet').textContent = `${BET.toLocaleString('ru-RU')} 💎`;
+            console.log('✅ Загружено:', {USER_ID, CUSTOM_ID, BALANCE});
+            updateBalance();
+            
+            // Устанавливаем начальную ставку
             document.getElementById('betInput').value = BET;
         }
 
-        function changeBet(multiplier) {
-            BET = Math.max(10000, Math.floor(BET * multiplier));
-            if (BET > BALANCE) {
-                BET = Math.floor(BALANCE / 10000) * 10000;
-                if (BET < 10000) BET = 10000;
-            }
-            updateUI();
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        function updateBalance() {
+            document.getElementById('balance').textContent = `${BALANCE.toLocaleString('ru-RU')} 💎`;
         }
 
-        // Обработчики кнопок ставок
-        document.querySelectorAll('.bet-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        function getBetAmount() {
+            const input = document.getElementById('betInput');
+            let amount = parseInt(input.value) || 10000;
+            
+            // Проверки
+            if (amount < 10000) amount = 10000;
+            if (amount > BALANCE) amount = BALANCE;
+            
+            // Обновляем поле
+            input.value = amount;
+            return amount;
+        }
+
+        // Обработчик ввода ставки
+        document.getElementById('betInput').addEventListener('input', function(e) {
+            let value = this.value.replace(/[^0-9]/g, '');
+            this.value = value;
+        });
+
+        // Быстрые кнопки ставок
+        document.querySelectorAll('.bet-quick').forEach(btn => {
+            btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                const mult = parseFloat(btn.dataset.mult);
-                changeBet(mult);
+                
+                const amount = parseInt(this.dataset.amount);
+                document.getElementById('betInput').value = amount;
+                
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
             });
         });
 
-        // Обработчик ввода суммы
-        document.getElementById('betInput').addEventListener('input', (e) => {
-            let value = parseInt(e.target.value) || 10000;
-            value = Math.max(10000, value);
-            if (value > BALANCE) value = BALANCE;
-            BET = value;
-            updateUI();
-        });
-
-        // Обработчик кнопки крутить
-        document.getElementById('spinBtn').addEventListener('click', async (e) => {
+        // Обработчик кнопки КРУТИТЬ
+        document.getElementById('spinBtn').addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
-            await spin();
-        });
-
-        async function spin() {
+            
             if (isSpinning) {
                 console.log('⏳ Уже крутится');
                 return;
             }
+            
+            await spin();
+        });
+
+        async function spin() {
+            BET = getBetAmount();
             
             if (BALANCE < BET) {
                 showResult('❌ Недостаточно токенов!', false);
@@ -370,12 +404,16 @@
                 return;
             }
 
-            console.log('🎰 Начинаем крутить');
+            console.log('🎰 Крутим! Ставка:', BET);
             isSpinning = true;
-            document.getElementById('spinBtn').disabled = true;
             
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ КРУТИМ...';
+            
+            // Списываем ставку
             BALANCE -= BET;
-            updateUI();
+            updateBalance();
 
             const slots = [
                 document.getElementById('slot1'),
@@ -383,17 +421,21 @@
                 document.getElementById('slot3')
             ];
 
+            // Начинаем крутить
             slots.forEach(slot => slot.classList.add('spinning'));
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
+            // Крутим 1.5 секунды
             await new Promise(resolve => setTimeout(resolve, 1500));
 
+            // Генерируем результат
             const results = [
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
             ];
 
+            // Показываем результат постепенно
             for (let i = 0; i < 3; i++) {
                 await new Promise(resolve => setTimeout(resolve, 200));
                 slots[i].textContent = results[i];
@@ -401,6 +443,7 @@
                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
 
+            // Проверяем выигрыш
             let winAmount = 0;
             let multiplier = 0;
             
@@ -416,6 +459,7 @@
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
 
+            // Отправляем результат боту
             try {
                 tg.sendData(JSON.stringify({
                     action: 'casino_result',
@@ -426,16 +470,18 @@
                     balance: BALANCE,
                     result: results.join('')
                 }));
-                console.log('✅ Данные отправлены:', {balance: BALANCE});
+                console.log('✅ Отправлено боту. Баланс:', BALANCE);
             } catch (e) {
                 console.error('❌ Ошибка отправки:', e);
             }
 
-            updateUI();
+            updateBalance();
             
-            await new Promise(resolve => setTimeout(resolve, 600));
+            // Разблокируем кнопку
+            await new Promise(resolve => setTimeout(resolve, 800));
+            btn.disabled = false;
+            btn.textContent = '🎰 КРУТИТЬ';
             isSpinning = false;
-            document.getElementById('spinBtn').disabled = false;
             console.log('✅ Готово к следующему спину');
         }
 
@@ -443,14 +489,15 @@
             const msg = document.getElementById('resultMsg');
             msg.textContent = text;
             msg.className = `result-popup show ${isWin ? 'win' : ''}`;
-            setTimeout(() => msg.classList.remove('show'), 2200);
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 2500);
         }
 
+        // Загружаем параметры
         getParams();
-        tg.MainButton.hide();
         
-        console.log('✅ Казино загружено');
+        console.log('✅ Казино запущено');
     </script>
 </body>
 </html>
-
