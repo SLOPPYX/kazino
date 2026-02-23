@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -12,14 +11,12 @@
             padding: 0; 
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
         }
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
             position: fixed;
-            overscroll-behavior: none;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -42,7 +39,6 @@
             padding: 20px;
             border-radius: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
             border: 2px solid #ffffff;
         }
         .balance-label {
@@ -50,7 +46,6 @@
             opacity: 0.7;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: #ffffff;
             margin-bottom: 5px;
         }
         .balance-amount {
@@ -90,7 +85,6 @@
         .slot.spinning {
             animation: spin 0.15s linear infinite;
             border-color: #cccccc;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
         }
         @keyframes spin {
             0% { transform: rotateY(0deg); }
@@ -111,7 +105,6 @@
             letter-spacing: 2px;
             box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4);
             transition: all 0.3s ease;
-            margin-bottom: 15px;
         }
         .spin-btn:active {
             transform: scale(0.97);
@@ -119,10 +112,9 @@
         .spin-btn:disabled {
             background: #333333;
             color: #666666;
-            cursor: not-allowed;
         }
         
-        .bet-input-section {
+        .bet-section {
             background: #1a1a1a;
             padding: 18px;
             border-radius: 15px;
@@ -131,14 +123,12 @@
         }
         .bet-label {
             font-size: 13px;
-            color: #ffffff;
             margin-bottom: 10px;
-            opacity: 0.9;
             font-weight: 600;
         }
         .bet-input-wrapper {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         .bet-input {
             width: 100%;
@@ -161,8 +151,37 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 20px;
-            pointer-events: none;
         }
+        
+        .potential-win {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid #4CAF50;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .potential-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .potential-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .potential-loss {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid #f44336;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .potential-loss .potential-amount {
+            color: #f44336;
+        }
+        
         .bet-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -182,7 +201,6 @@
         .bet-quick:active {
             background: #ffffff;
             color: #000000;
-            transform: scale(0.95);
         }
         
         .payouts {
@@ -197,7 +215,6 @@
             font-weight: 700;
             margin-bottom: 12px;
             text-align: center;
-            color: #ffffff;
         }
         .payout-row {
             display: flex;
@@ -226,12 +243,12 @@
             box-shadow: 0 10px 50px rgba(255, 255, 255, 0.5);
             transition: all 0.4s ease;
             min-width: 260px;
-            pointer-events: none;
         }
         .result-popup.show {
             transform: translate(-50%, -50%) scale(1);
         }
         .result-popup.win {
+            border-color: #4CAF50;
             animation: pulse 0.6s ease-in-out;
         }
         @keyframes pulse {
@@ -256,7 +273,7 @@
             <button class="spin-btn" id="spinBtn">🎰 КРУТИТЬ</button>
         </div>
 
-        <div class="bet-input-section">
+        <div class="bet-section">
             <div class="bet-label">💵 Укажите вашу ставку:</div>
             <div class="bet-input-wrapper">
                 <input 
@@ -269,6 +286,17 @@
                     inputmode="numeric">
                 <span class="currency-icon">💎</span>
             </div>
+            
+            <div class="potential-win">
+                <div class="potential-label">🎉 Если выиграешь (x100):</div>
+                <div class="potential-amount" id="potentialWin">+1,000,000 💎</div>
+            </div>
+            
+            <div class="potential-loss">
+                <div class="potential-label">💔 Если проиграешь:</div>
+                <div class="potential-amount" id="potentialLoss">-10,000 💎</div>
+            </div>
+            
             <div class="bet-buttons">
                 <button class="bet-quick" data-amount="10000">10K</button>
                 <button class="bet-quick" data-amount="50000">50K</button>
@@ -293,26 +321,13 @@
     <div class="result-popup" id="resultMsg"></div>
 
     <script>
-        // КРИТИЧНО: Инициализация Telegram WebApp
         let tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         
-        // БЛОКИРУЕМ ВСЁ ЧТО МОЖЕТ ВЫЗВАТЬ ВЫЛЕТ
-        tg.disableVerticalSwipes();
-        tg.enableClosingConfirmation();
+        // НЕ используем sendData во время игры - это вызывает вылеты!
         tg.MainButton.hide();
         
-        // Запрещаем скролл страницы
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
-        // Блокируем все дефолтные действия
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.classList.contains('bet-input')) return;
-            e.preventDefault();
-        }, { passive: false });
-
         let BALANCE = 0;
         let BET = 10000;
         let USER_ID = '';
@@ -331,37 +346,43 @@
             CUSTOM_ID = url.get('custom_id') || '';
             BALANCE = parseInt(url.get('tokens')) || 0;
             
-            console.log('✅ Загружено:', {USER_ID, CUSTOM_ID, BALANCE});
+            console.log('✅ Параметры:', {USER_ID, CUSTOM_ID, BALANCE});
             updateBalance();
-            
-            // Устанавливаем начальную ставку
             document.getElementById('betInput').value = BET;
+            updatePotentials();
         }
 
         function updateBalance() {
             document.getElementById('balance').textContent = `${BALANCE.toLocaleString('ru-RU')} 💎`;
         }
 
+        function updatePotentials() {
+            const bet = parseInt(document.getElementById('betInput').value) || 10000;
+            const maxWin = bet * 100;
+            
+            document.getElementById('potentialWin').textContent = 
+                `+${maxWin.toLocaleString('ru-RU')} 💎`;
+            document.getElementById('potentialLoss').textContent = 
+                `-${bet.toLocaleString('ru-RU')} 💎`;
+        }
+
         function getBetAmount() {
             const input = document.getElementById('betInput');
             let amount = parseInt(input.value) || 10000;
             
-            // Проверки
             if (amount < 10000) amount = 10000;
             if (amount > BALANCE) amount = BALANCE;
             
-            // Обновляем поле
             input.value = amount;
             return amount;
         }
 
-        // Обработчик ввода ставки
         document.getElementById('betInput').addEventListener('input', function(e) {
             let value = this.value.replace(/[^0-9]/g, '');
             this.value = value;
+            updatePotentials();
         });
 
-        // Быстрые кнопки ставок
         document.querySelectorAll('.bet-quick').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -369,6 +390,7 @@
                 
                 const amount = parseInt(this.dataset.amount);
                 document.getElementById('betInput').value = amount;
+                updatePotentials();
                 
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('light');
@@ -376,16 +398,11 @@
             });
         });
 
-        // Обработчик кнопки КРУТИТЬ
         document.getElementById('spinBtn').addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            if (isSpinning) {
-                console.log('⏳ Уже крутится');
-                return;
-            }
-            
+            if (isSpinning) return;
             await spin();
         });
 
@@ -411,7 +428,6 @@
             btn.disabled = true;
             btn.textContent = '⏳ КРУТИМ...';
             
-            // Списываем ставку
             BALANCE -= BET;
             updateBalance();
 
@@ -421,21 +437,17 @@
                 document.getElementById('slot3')
             ];
 
-            // Начинаем крутить
             slots.forEach(slot => slot.classList.add('spinning'));
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            // Крутим 1.5 секунды
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Генерируем результат
             const results = [
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
                 SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
             ];
 
-            // Показываем результат постепенно
             for (let i = 0; i < 3; i++) {
                 await new Promise(resolve => setTimeout(resolve, 200));
                 slots[i].textContent = results[i];
@@ -443,7 +455,6 @@
                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
 
-            // Проверяем выигрыш
             let winAmount = 0;
             let multiplier = 0;
             
@@ -459,30 +470,29 @@
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
 
-            // Отправляем результат боту
-            try {
-                tg.sendData(JSON.stringify({
-                    action: 'casino_result',
-                    user_id: USER_ID,
-                    custom_id: CUSTOM_ID,
-                    bet: BET,
-                    win: winAmount,
-                    balance: BALANCE,
-                    result: results.join('')
-                }));
-                console.log('✅ Отправлено боту. Баланс:', BALANCE);
-            } catch (e) {
-                console.error('❌ Ошибка отправки:', e);
-            }
+            // Сохраняем результат локально
+            window.casinoResult = {
+                action: 'casino_result',
+                user_id: USER_ID,
+                custom_id: CUSTOM_ID,
+                bet: BET,
+                win: winAmount,
+                balance: BALANCE,
+                result: results.join('')
+            };
+            
+            // Показываем кнопку с балансом
+            tg.MainButton.setText(`Баланс: ${BALANCE.toLocaleString('ru-RU')} 💎`);
+            tg.MainButton.show();
+            
+            console.log('✅ Результат:', window.casinoResult);
 
             updateBalance();
             
-            // Разблокируем кнопку
             await new Promise(resolve => setTimeout(resolve, 800));
             btn.disabled = false;
             btn.textContent = '🎰 КРУТИТЬ';
             isSpinning = false;
-            console.log('✅ Готово к следующему спину');
         }
 
         function showResult(text, isWin) {
@@ -494,10 +504,21 @@
             }, 2500);
         }
 
-        // Загружаем параметры
+        // Отправка результата при закрытии
+        tg.MainButton.onClick(() => {
+            if (window.casinoResult) {
+                try {
+                    tg.sendData(JSON.stringify(window.casinoResult));
+                } catch (e) {
+                    console.error('Ошибка отправки:', e);
+                }
+            }
+            tg.close();
+        });
+
         getParams();
-        
-        console.log('✅ Казино запущено');
+        console.log('✅ Казино загружено');
     </script>
 </body>
 </html>
+
