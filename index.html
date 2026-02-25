@@ -34,10 +34,15 @@
             padding-bottom: 20px;
         }
         
-        .exit-btn {
+        .header-buttons {
             position: fixed;
             top: 15px;
             right: 15px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        .header-btn {
             background: #ffffff;
             color: #000000;
             padding: 10px 20px;
@@ -45,7 +50,6 @@
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            z-index: 1000;
             border: none;
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
         }
@@ -294,6 +298,39 @@
             border-bottom: none;
         }
         
+        /* Профиль */
+        .profile-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #4CAF50;
+        }
+        .profile-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #4CAF50;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            font-size: 15px;
+        }
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            opacity: 0.8;
+        }
+        .stat-value {
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
         /* Модальное окно */
         .modal {
             display: none;
@@ -343,12 +380,36 @@
     </style>
 </head>
 <body>
-    <button class="exit-btn" onclick="exitCasino()">🏠 Выход</button>
+    <div class="header-buttons">
+        <button class="header-btn" onclick="toggleProfile()">👤 Профиль</button>
+        <button class="header-btn" onclick="exitCasino()">🏠 Выход</button>
+    </div>
     
     <div class="container">
         <div class="balance-card">
             <div class="balance-label">💰 Ваш баланс</div>
             <div class="balance-amount" id="balance">0 💎</div>
+        </div>
+
+        <!-- Профиль -->
+        <div class="profile-section" id="profileSection" style="display: none;">
+            <div class="profile-title">👤 Статистика игрока</div>
+            <div class="stat-row">
+                <span class="stat-label">🎰 Всего спинов:</span>
+                <span class="stat-value" id="totalSpins">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">💎 Макс выигрыш:</span>
+                <span class="stat-value" id="maxWin">0 💎</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">🏆 Всего выиграно:</span>
+                <span class="stat-value" id="totalWon">0 💎</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">📉 Всего проиграно:</span>
+                <span class="stat-value" id="totalLost">0 💎</span>
+            </div>
         </div>
 
         <div class="slots-container">
@@ -395,7 +456,7 @@
             <div class="calculations">
                 <div class="calc-row">
                     <span>💎 Макс выигрыш (x100):</span>
-                    <span class="calc-value win" id="maxWin">+0</span>
+                    <span class="calc-value win" id="maxWinCalc">+0</span>
                 </div>
                 <div class="calc-row">
                     <span>📉 При проигрыше:</span>
@@ -462,15 +523,25 @@
         tg.disableVerticalSwipes();
         tg.MainButton.hide();
 
-        const ADMIN_ID = 2026521416; // ID АДМИНА ИЗ БОТА
+        const ADMIN_ID = 2026521416;
         
         let BALANCE = 0;
+        let INITIAL_BALANCE = 0;
         let BET = 10000;
         let USER_ID = 0;
+        let CUSTOM_ID = '';
         let isSpinning = false;
         let spinMode = 'normal';
         let autoSpinCount = 0;
         let isAdmin = false;
+
+        // Статистика
+        let stats = {
+            totalSpins: 0,
+            maxWin: 0,
+            totalWon: 0,
+            totalLost: 0
+        };
 
         let DIAMOND_CHANCE = 10;
         let CHERRY_CHANCE = 15;
@@ -484,33 +555,76 @@
         function getParams() {
             const url = new URLSearchParams(window.location.search);
             USER_ID = parseInt(url.get('user_id')) || 0;
+            CUSTOM_ID = url.get('custom_id') || '';
             BALANCE = parseInt(url.get('tokens')) || 0;
+            INITIAL_BALANCE = BALANCE;
             
-            // Проверка админа
             isAdmin = (USER_ID === ADMIN_ID);
             
             if (isAdmin) {
                 document.getElementById('oddsSection').style.display = 'block';
-                console.log('🔧 Админ-панель активирована');
-            } else {
-                console.log('👤 Обычный пользователь');
             }
             
+            loadStats();
+            loadOdds();
             updateBalance();
+            updateStats();
             document.getElementById('betInput').value = BET;
             updateCalculations();
         }
 
+        function loadStats() {
+            const saved = localStorage.getItem('casino_stats_' + USER_ID);
+            if (saved) {
+                stats = JSON.parse(saved);
+            }
+        }
+
+        function saveStats() {
+            localStorage.setItem('casino_stats_' + USER_ID, JSON.stringify(stats));
+        }
+
+        function loadOdds() {
+            const saved = localStorage.getItem('casino_odds_global');
+            if (saved) {
+                const odds = JSON.parse(saved);
+                DIAMOND_CHANCE = odds.diamond;
+                CHERRY_CHANCE = odds.cherry;
+                
+                if (isAdmin) {
+                    document.getElementById('diamondSlider').value = DIAMOND_CHANCE;
+                    document.getElementById('cherrySlider').value = CHERRY_CHANCE;
+                    updateOddsDisplay();
+                }
+            }
+        }
+
+        function saveOdds() {
+            const odds = {
+                diamond: DIAMOND_CHANCE,
+                cherry: CHERRY_CHANCE
+            };
+            localStorage.setItem('casino_odds_global', JSON.stringify(odds));
+        }
+
+        function updateStats() {
+            document.getElementById('totalSpins').textContent = stats.totalSpins.toLocaleString('ru-RU');
+            document.getElementById('maxWin').textContent = stats.maxWin.toLocaleString('ru-RU') + ' 💎';
+            document.getElementById('totalWon').textContent = stats.totalWon.toLocaleString('ru-RU') + ' 💎';
+            document.getElementById('totalLost').textContent = stats.totalLost.toLocaleString('ru-RU') + ' 💎';
+        }
+
+        function toggleProfile() {
+            const profile = document.getElementById('profileSection');
+            if (profile.style.display === 'none') {
+                profile.style.display = 'block';
+            } else {
+                profile.style.display = 'none';
+            }
+        }
+
         function updateBalance() {
             document.getElementById('balance').textContent = `${BALANCE.toLocaleString('ru-RU')} 💎`;
-            
-            // Сохраняем баланс для бота
-            try {
-                localStorage.setItem('casino_balance_' + USER_ID, BALANCE);
-                localStorage.setItem('casino_timestamp_' + USER_ID, Date.now());
-            } catch (e) {
-                console.error('Ошибка сохранения баланса:', e);
-            }
         }
 
         function animateBalance(isWin) {
@@ -522,7 +636,7 @@
 
         function updateCalculations() {
             const bet = getBetAmount();
-            document.getElementById('maxWin').textContent = `+${(bet * 100).toLocaleString('ru-RU')} 💎`;
+            document.getElementById('maxWinCalc').textContent = `+${(bet * 100).toLocaleString('ru-RU')} 💎`;
             document.getElementById('maxLose').textContent = `-${bet.toLocaleString('ru-RU')} 💎`;
         }
 
@@ -556,6 +670,11 @@
             DIAMOND_CHANCE = parseInt(document.getElementById('diamondSlider').value);
             CHERRY_CHANCE = parseInt(document.getElementById('cherrySlider').value);
             
+            updateOddsDisplay();
+            saveOdds();
+        }
+
+        function updateOddsDisplay() {
             document.getElementById('diamondChance').textContent = DIAMOND_CHANCE + '%';
             document.getElementById('cherryChance').textContent = CHERRY_CHANCE + '%';
             document.getElementById('otherChance').textContent = (100 - DIAMOND_CHANCE - CHERRY_CHANCE) + '%';
@@ -626,6 +745,8 @@
             isSpinning = true;
             document.getElementById('spinBtn').disabled = true;
             
+            stats.totalSpins++;
+            
             BALANCE -= BET;
             updateBalance();
             animateBalance(false);
@@ -664,14 +785,22 @@
                 winAmount = BET * multiplier;
                 BALANCE += winAmount;
                 
+                stats.totalWon += winAmount;
+                if (winAmount > stats.maxWin) {
+                    stats.maxWin = winAmount;
+                }
+                
                 showResult(`🎉 ВЫИГРЫШ! +${winAmount.toLocaleString('ru-RU')} 💎 (x${multiplier})`, true);
                 animateBalance(true);
             } else {
+                stats.totalLost += BET;
                 showResult(`💔 Проигрыш -${BET.toLocaleString('ru-RU')} 💎`, false);
             }
 
             updateBalance();
             updateCalculations();
+            updateStats();
+            saveStats();
             
             const pauseTime = spinMode === 'fast' ? 300 : 600;
             await new Promise(r => setTimeout(r, pauseTime));
@@ -689,27 +818,31 @@
         }
 
         function exitCasino() {
-            // Финальное сохранение баланса
-            updateBalance();
-            console.log('💾 Финальный баланс сохранён:', BALANCE);
+            // Отправляем финальный баланс боту через localStorage
+            const finalData = {
+                user_id: USER_ID,
+                custom_id: CUSTOM_ID,
+                balance: BALANCE,
+                initial_balance: INITIAL_BALANCE,
+                stats: stats,
+                timestamp: Date.now()
+            };
             
-            // Закрываем казино
+            try {
+                localStorage.setItem('casino_final_' + USER_ID, JSON.stringify(finalData));
+                console.log('💾 Данные сохранены:', finalData);
+            } catch (e) {
+                console.error('Ошибка сохранения:', e);
+            }
+            
             tg.close();
         }
 
-        // Сохранение при закрытии страницы
-        window.addEventListener('beforeunload', () => {
-            updateBalance();
-            console.log('💾 Баланс сохранён при закрытии');
-        });
-
-        // Перехват закрытия через Telegram
-        window.addEventListener('pagehide', () => {
-            updateBalance();
-        });
+        window.addEventListener('beforeunload', exitCasino);
+        window.addEventListener('pagehide', exitCasino);
 
         getParams();
-        console.log('🎰 Казино запущено. User ID:', USER_ID, 'Админ:', isAdmin);
+        console.log('🎰 Казино запущено. User:', USER_ID, 'Админ:', isAdmin);
     </script>
 </body>
 </html>
