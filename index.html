@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -35,6 +34,9 @@
         .mode-btn.active { background: #fff; color: #000; }
         .spin-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #000; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
         .spin-btn:disabled { background: #333; color: #666; }
+        .stop-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; background: linear-gradient(135deg, #f44 0%, #c33 100%); color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; display: none; animation: pulse 1s ease-in-out infinite; }
+        .stop-btn.show { display: block; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         .bet-input-section { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #fff; }
         .bet-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #fff; background: #000; color: #fff; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 12px; }
         .bet-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
@@ -92,6 +94,7 @@
                     <button class="mode-btn" id="fastMode" onclick="setMode('fast')">⚡ Быстрый</button>
                 </div>
                 <button class="spin-btn" id="spinBtn" onclick="handleSpin()">🎰 КРУТИТЬ</button>
+                <button class="stop-btn" id="stopBtn" onclick="stopAutoSpin()">🛑 ОСТАНОВИТЬ АВТО-СПИН</button>
                 <div style="text-align: center; margin-top: 10px;">
                     <label style="font-size: 14px;">
                         <input type="checkbox" id="autoSpinCheck" style="margin-right: 5px;">
@@ -100,8 +103,8 @@
                 </div>
             </div>
             <div class="bet-input-section">
-                <div style="font-size: 13px; margin-bottom: 10px; font-weight: 600;">💵 Укажите вашу ставку:</div>
-                <input type="number" class="bet-input" id="betInput" placeholder="Введите сумму" min="10000" step="1000" oninput="updateCalculations()">
+                <div style="font-size: 13px; margin-bottom: 10px; font-weight: 600;">💵 Укажите ТОЧНУЮ сумму ставки:</div>
+                <input type="number" class="bet-input" id="betInput" placeholder="Любая сумма от 10,000" min="10000" step="1" oninput="updateCalculations()">
                 <div class="bet-buttons">
                     <button class="bet-quick" onclick="setQuickBet(10000)">10K</button>
                     <button class="bet-quick" onclick="setQuickBet(50000)">50K</button>
@@ -114,7 +117,7 @@
                 </div>
             </div>
             <div class="odds-section" id="oddsSection" style="display: none;">
-                <div class="odds-title">🔧 Настройка ВСЕХ символов (АДМИН)</div>
+                <div class="odds-title">🔧 АДМИН: Настройка шансов ДЛЯ ВСЕХ</div>
                 <div class="odds-control"><div class="odds-label"><span>💎 Алмазы (x100)</span><span id="c0">10%</span></div><input type="range" class="odds-slider" id="s0" min="1" max="50" value="10" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍒 Вишни (x50)</span><span id="c1">15%</span></div><input type="range" class="odds-slider" id="s1" min="1" max="50" value="15" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍋 Лимоны (x30)</span><span id="c2">15%</span></div><input type="range" class="odds-slider" id="s2" min="1" max="50" value="15" oninput="updateOdds()"></div>
@@ -168,7 +171,7 @@
     <script>
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
         const ADMIN_ID=2026521416;
-        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',autoSpinCount=0,isAdmin=false;
+        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',autoSpinCount=0,isAdmin=false,stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[10,15,15,15,15,10,10,10];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
@@ -181,7 +184,7 @@
             BALANCE=parseInt(url.get('tokens'))||0;
             INITIAL_BALANCE=BALANCE;
             isAdmin=(USER_ID===ADMIN_ID);
-            if(isAdmin)document.getElementById('oddsSection').style.display='block';
+            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН режим активирован');}
             loadStats();loadOdds();updateBalance();updateProfileStats();
             document.getElementById('betInput').value=BET;updateCalculations();
         }
@@ -222,12 +225,13 @@
         }
         
         function updateOdds(){
-            if(!isAdmin){showError('⛔ Только админ!');return;}
+            if(!isAdmin){showError('⛔ Только админ может менять шансы!');return;}
             for(let i=0;i<8;i++){
                 odds[i]=parseInt(document.getElementById('s'+i).value);
                 document.getElementById('c'+i).textContent=odds[i]+'%';
             }
             localStorage.setItem('casino_odds_all',JSON.stringify(odds));
+            console.log('🔧 АДМИН установил шансы ДЛЯ ВСЕХ:',odds);
         }
         
         function getWeightedSymbol(){
@@ -257,33 +261,58 @@
         function updateBalance(){document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;}
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
-        function getBetAmount(){let a=parseInt(document.getElementById('betInput').value)||10000;if(a<10000)a=10000;if(a>BALANCE)a=BALANCE;document.getElementById('betInput').value=a;return a;}
+        function getBetAmount(){let a=parseInt(document.getElementById('betInput').value)||10000;if(a<10000)a=10000;if(a>BALANCE)a=BALANCE;return a;}
         function setQuickBet(a){document.getElementById('betInput').value=a;updateCalculations();if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');}
         function setMode(m){spinMode=m;document.getElementById('normalMode').classList.toggle('active',m==='normal');document.getElementById('fastMode').classList.toggle('active',m==='fast');if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');}
         function showError(t){document.getElementById('errorText').textContent=t;document.getElementById('errorModal').classList.add('show');if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');}
         function closeModal(){document.getElementById('errorModal').classList.remove('show');}
         
+        function stopAutoSpin(){
+            stopAutoSpinFlag=true;
+            document.getElementById('stopBtn').classList.remove('show');
+            document.getElementById('spinBtn').style.display='block';
+            console.log('🛑 Авто-спин остановлен пользователем');
+            if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning');
+        }
+        
         async function handleSpin(){
             const auto=document.getElementById('autoSpinCheck').checked;
             if(auto){
+                stopAutoSpinFlag=false;
+                document.getElementById('spinBtn').style.display='none';
+                document.getElementById('stopBtn').classList.add('show');
+                
                 for(let i=0;i<10;i++){
+                    if(stopAutoSpinFlag){
+                        console.log('🛑 Остановлено на спине',i+1);
+                        break;
+                    }
+                    
                     autoSpinCount=i+1;
                     document.getElementById('autoCount').textContent=autoSpinCount;
+                    
                     const ok=await spin();
-                    if(!ok){document.getElementById('autoSpinCheck').checked=false;break;}
+                    if(!ok){
+                        document.getElementById('autoSpinCheck').checked=false;
+                        break;
+                    }
+                    
                     await new Promise(r=>setTimeout(r,spinMode==='fast'?500:1000));
                 }
+                
                 autoSpinCount=0;
                 document.getElementById('autoCount').textContent='0';
                 document.getElementById('autoSpinCheck').checked=false;
+                document.getElementById('stopBtn').classList.remove('show');
+                document.getElementById('spinBtn').style.display='block';
             }else await spin();
         }
         
         async function spin(){
             if(isSpinning)return false;
             BET=getBetAmount();
-            if(BALANCE<BET){showError(`❌ Недостаточно!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
-            if(BET<10000){showError('❌ Минимум 10,000!');return false;}
+            if(BALANCE<BET){showError(`❌ Недостаточно токенов!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
+            if(BET<10000){showError('❌ Минимум 10,000 токенов!');return false;}
             isSpinning=true;
             document.getElementById('spinBtn').disabled=true;
             stats.totalSpins++;
