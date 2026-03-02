@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -46,8 +45,8 @@
         .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
         .calc-value.win { color: #4CAF50; font-weight: 700; }
         .calc-value.lose { color: #f44; font-weight: 700; }
-        .odds-info { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #4CAF50; }
-        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #4CAF50; }
+        .odds-info { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #f80; }
+        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #f80; }
         .odds-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 14px; }
         .odds-row:last-child { border-bottom: none; }
         .payouts { background: #1a1a1a; padding: 18px; border-radius: 15px; border: 2px solid #333; margin-bottom: 20px; }
@@ -115,15 +114,15 @@
                 </div>
             </div>
             <div class="odds-info" id="oddsInfo">
-                <div class="odds-title">📊 Текущие шансы</div>
-                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">10%</span></div>
-                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">15%</span></div>
-                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">15%</span></div>
-                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">15%</span></div>
-                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">15%</span></div>
-                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">10%</span></div>
-                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">10%</span></div>
-                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">10%</span></div>
+                <div class="odds-title">🎲 Шансы (настраиваются в боте)</div>
+                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">--%</span></div>
+                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">--%</span></div>
+                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">--%</span></div>
+                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">--%</span></div>
+                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">--%</span></div>
+                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">--%</span></div>
+                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">--%</span></div>
+                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">--%</span></div>
             </div>
             <div class="payouts">
                 <div style="font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center;">🎯 Выплаты</div>
@@ -174,29 +173,47 @@
         
         function getParams(){
             try{
-                const url=new URLSearchParams(window.location.search);
-                USER_ID=parseInt(url.get('user_id'))||0;
-                CUSTOM_ID=url.get('custom_id')||'';
-                BALANCE=parseInt(url.get('tokens'))||0;
+                const params=new URLSearchParams(window.location.search);
+                USER_ID=parseInt(params.get('user_id'))||0;
+                CUSTOM_ID=params.get('custom_id')||'';
+                BALANCE=parseInt(params.get('tokens'))||0;
                 INITIAL_BALANCE=BALANCE;
                 
-                const oddsParam=url.get('odds');
-                if(oddsParam){
-                    try{
-                        const decoded=decodeURIComponent(oddsParam);
-                        const parsed=JSON.parse(decoded);
-                        if(Array.isArray(parsed)&&parsed.length===8){
-                            odds=parsed;
-                            console.log('✅ Шансы получены:',odds);
-                        }
-                    }catch(e){console.error('Ошибка парсинга шансов:',e);}
+                console.log('📥 Параметры получены:');
+                console.log('User ID:',USER_ID);
+                console.log('Custom ID:',CUSTOM_ID);
+                console.log('Баланс:',BALANCE);
+                
+                const o0=params.get('o0');
+                const o1=params.get('o1');
+                const o2=params.get('o2');
+                const o3=params.get('o3');
+                const o4=params.get('o4');
+                const o5=params.get('o5');
+                const o6=params.get('o6');
+                const o7=params.get('o7');
+                
+                if(o0&&o1&&o2&&o3&&o4&&o5&&o6&&o7){
+                    odds=[
+                        parseInt(o0)||10,
+                        parseInt(o1)||15,
+                        parseInt(o2)||15,
+                        parseInt(o3)||15,
+                        parseInt(o4)||15,
+                        parseInt(o5)||10,
+                        parseInt(o6)||10,
+                        parseInt(o7)||10
+                    ];
+                    console.log('✅ ШАНСЫ ПОЛУЧЕНЫ:',odds);
+                }else{
+                    console.log('⚠️ Шансы не переданы, используются по умолчанию:',odds);
                 }
                 
                 updateOddsDisplay();
                 loadStats();updateBalance();updateProfileStats();
                 document.getElementById('betInput').value=BET;updateCalculations();
-                console.log('🎰 Запуск OK. User:',USER_ID,'Баланс:',BALANCE,'Шансы:',odds);
-            }catch(e){console.error('Критическая ошибка init:',e);}
+                console.log('🎰 Инициализация завершена');
+            }catch(e){console.error('❌ Ошибка getParams:',e);}
         }
         
         function updateOddsDisplay(){
@@ -204,6 +221,7 @@
                 const el=document.getElementById('o'+i);
                 if(el)el.textContent=odds[i]+'%';
             }
+            console.log('📊 Шансы отображены на сайте:',odds);
         }
         
         function showScreen(s){
@@ -329,13 +347,13 @@
         
         function exitAndSave(){
             try{
-                console.log('🏠 Выход');
+                console.log('🏠 Выход из казино');
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
                 const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
+                console.log('📤 Отправка данных боту:',data);
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Выход:',{balance:BALANCE,change:change});
-            }catch(e){console.error('Ошибка exitAndSave:',e);tg.close();}
+            }catch(e){console.error('❌ Ошибка exitAndSave:',e);tg.close();}
         }
         
         window.addEventListener('beforeunload',()=>{try{localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify({balance:BALANCE,stats:stats}));}catch(e){}});
