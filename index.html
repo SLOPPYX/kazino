@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -165,35 +166,37 @@
     </div>
     <script>
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
-        const ADMIN_ID=2026521416;
-        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',isAdmin=false,stopAutoSpinFlag=false;
+        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[10,15,15,15,15,10,10,10];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
         function getParams(){
-            const url=new URLSearchParams(window.location.search);
-            USER_ID=parseInt(url.get('user_id'))||0;
-            CUSTOM_ID=url.get('custom_id')||'';
-            BALANCE=parseInt(url.get('tokens'))||0;
-            INITIAL_BALANCE=BALANCE;
-            isAdmin=(USER_ID===ADMIN_ID);
-            
-            const oddsParam=url.get('odds');
-            if(oddsParam){
-                try{
-                    const parsed=JSON.parse(decodeURIComponent(oddsParam));
-                    if(Array.isArray(parsed)&&parsed.length===8){
-                        odds=parsed;
-                        console.log('✅ Шансы из URL:',odds);
-                    }
-                }catch(e){console.error('Ошибка парсинга шансов:',e);}
-            }
-            
-            updateOddsDisplay();
-            loadStats();updateBalance();updateProfileStats();
-            document.getElementById('betInput').value=BET;updateCalculations();
+            try{
+                const url=new URLSearchParams(window.location.search);
+                USER_ID=parseInt(url.get('user_id'))||0;
+                CUSTOM_ID=url.get('custom_id')||'';
+                BALANCE=parseInt(url.get('tokens'))||0;
+                INITIAL_BALANCE=BALANCE;
+                
+                const oddsParam=url.get('odds');
+                if(oddsParam){
+                    try{
+                        const decoded=decodeURIComponent(oddsParam);
+                        const parsed=JSON.parse(decoded);
+                        if(Array.isArray(parsed)&&parsed.length===8){
+                            odds=parsed;
+                            console.log('✅ Шансы получены:',odds);
+                        }
+                    }catch(e){console.error('Ошибка парсинга шансов:',e);}
+                }
+                
+                updateOddsDisplay();
+                loadStats();updateBalance();updateProfileStats();
+                document.getElementById('betInput').value=BET;updateCalculations();
+                console.log('🎰 Запуск OK. User:',USER_ID,'Баланс:',BALANCE,'Шансы:',odds);
+            }catch(e){console.error('Критическая ошибка init:',e);}
         }
         
         function updateOddsDisplay(){
@@ -216,8 +219,8 @@
             }
         }
         
-        function loadStats(){const saved=localStorage.getItem('casino_stats_'+USER_ID);if(saved)stats=JSON.parse(saved);}
-        function saveStats(){localStorage.setItem('casino_stats_'+USER_ID,JSON.stringify(stats));}
+        function loadStats(){try{const saved=localStorage.getItem('casino_stats_'+USER_ID);if(saved)stats=JSON.parse(saved);}catch(e){}}
+        function saveStats(){try{localStorage.setItem('casino_stats_'+USER_ID,JSON.stringify(stats));}catch(e){}}
         
         function getWeightedSymbol(){
             const total=odds.reduce((a,b)=>a+b,0);
@@ -260,90 +263,84 @@
         }
         
         async function handleSpin(){
-            const auto=document.getElementById('autoSpinCheck').checked;
-            if(auto){
-                stopAutoSpinFlag=false;
-                document.getElementById('spinBtn').style.display='none';
-                document.getElementById('stopBtn').classList.add('show');
-                while(BALANCE>=getBetAmount()&&!stopAutoSpinFlag){
-                    const ok=await spin();
-                    if(!ok)break;
-                    await new Promise(r=>setTimeout(r,spinMode==='fast'?500:1000));
-                }
-                document.getElementById('autoSpinCheck').checked=false;
-                document.getElementById('stopBtn').classList.remove('show');
-                document.getElementById('spinBtn').style.display='block';
-            }else await spin();
+            try{
+                const auto=document.getElementById('autoSpinCheck').checked;
+                if(auto){
+                    stopAutoSpinFlag=false;
+                    document.getElementById('spinBtn').style.display='none';
+                    document.getElementById('stopBtn').classList.add('show');
+                    while(BALANCE>=getBetAmount()&&!stopAutoSpinFlag){
+                        const ok=await spin();
+                        if(!ok)break;
+                        await new Promise(r=>setTimeout(r,spinMode==='fast'?500:1000));
+                    }
+                    document.getElementById('autoSpinCheck').checked=false;
+                    document.getElementById('stopBtn').classList.remove('show');
+                    document.getElementById('spinBtn').style.display='block';
+                }else await spin();
+            }catch(e){console.error('Ошибка handleSpin:',e);}
         }
         
         async function spin(){
-            if(isSpinning)return false;
-            BET=getBetAmount();
-            if(BALANCE<BET){showError(`❌ Недостаточно!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
-            if(BET<10000){showError('❌ Минимум 10,000!');return false;}
-            isSpinning=true;
-            document.getElementById('spinBtn').disabled=true;
-            stats.totalSpins++;
-            BALANCE-=BET;
-            updateBalance();animateBalance(false);
-            const slots=[document.getElementById('slot1'),document.getElementById('slot2'),document.getElementById('slot3')];
-            slots.forEach(s=>s.classList.add('spinning'));
-            if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');
-            await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
-            const res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
-            const rt=spinMode==='fast'?100:200;
-            for(let i=0;i<3;i++){
-                await new Promise(r=>setTimeout(r,rt));
-                slots[i].textContent=res[i];
-                slots[i].classList.remove('spinning');
-                if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
-            }
-            let win=0,mult=0;
-            if(res[0]===res[1]&&res[1]===res[2]){
-                mult=PAYOUTS[res[0]];
-                win=BET*mult;
-                BALANCE+=win;
-                stats.totalWon+=win;
-                if(win>stats.maxWin)stats.maxWin=win;
-                showResult(`🎉 ВЫИГРЫШ! +${win.toLocaleString('ru-RU')} 💎 (x${mult})`,true);
-                animateBalance(true);
-            }else{
-                stats.totalLost+=BET;
-                showResult(`💔 Проигрыш -${BET.toLocaleString('ru-RU')} 💎`,false);
-            }
-            updateBalance();updateCalculations();saveStats();
-            sendRealtimeUpdate();
-            await new Promise(r=>setTimeout(r,spinMode==='fast'?300:600));
-            document.getElementById('spinBtn').disabled=false;
-            isSpinning=false;
-            return true;
+            try{
+                if(isSpinning)return false;
+                BET=getBetAmount();
+                if(BALANCE<BET){showError(`❌ Недостаточно!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
+                if(BET<10000){showError('❌ Минимум 10,000!');return false;}
+                isSpinning=true;
+                document.getElementById('spinBtn').disabled=true;
+                stats.totalSpins++;
+                BALANCE-=BET;
+                updateBalance();animateBalance(false);
+                const slots=[document.getElementById('slot1'),document.getElementById('slot2'),document.getElementById('slot3')];
+                slots.forEach(s=>s.classList.add('spinning'));
+                if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');
+                await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
+                const res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
+                const rt=spinMode==='fast'?100:200;
+                for(let i=0;i<3;i++){
+                    await new Promise(r=>setTimeout(r,rt));
+                    slots[i].textContent=res[i];
+                    slots[i].classList.remove('spinning');
+                    if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
+                }
+                let win=0,mult=0;
+                if(res[0]===res[1]&&res[1]===res[2]){
+                    mult=PAYOUTS[res[0]];
+                    win=BET*mult;
+                    BALANCE+=win;
+                    stats.totalWon+=win;
+                    if(win>stats.maxWin)stats.maxWin=win;
+                    showResult(`🎉 ВЫИГРЫШ! +${win.toLocaleString('ru-RU')} 💎 (x${mult})`,true);
+                    animateBalance(true);
+                }else{
+                    stats.totalLost+=BET;
+                    showResult(`💔 Проигрыш -${BET.toLocaleString('ru-RU')} 💎`,false);
+                }
+                updateBalance();updateCalculations();saveStats();
+                await new Promise(r=>setTimeout(r,spinMode==='fast'?300:600));
+                document.getElementById('spinBtn').disabled=false;
+                isSpinning=false;
+                return true;
+            }catch(e){console.error('Ошибка spin:',e);isSpinning=false;return false;}
         }
         
         function showResult(t,w){const l=document.getElementById('resultLine');l.textContent=t;l.className='result-line '+(w?'win':'lose');}
         
-        function sendRealtimeUpdate(){
-            try{
-                const data={action:'realtime_update',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,timestamp:Date.now()};
-                tg.sendData(JSON.stringify(data));
-                console.log('📡 Баланс:',BALANCE);
-            }catch(e){console.error('Ошибка sendData:',e);}
-        }
-        
         function exitAndSave(){
-            console.log('🏠 Выход');
             try{
+                console.log('🏠 Выход');
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
                 const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
                 console.log('✅ Выход:',{balance:BALANCE,change:change});
-            }catch(e){console.error('Ошибка:',e);}
+            }catch(e){console.error('Ошибка exitAndSave:',e);tg.close();}
         }
         
         window.addEventListener('beforeunload',()=>{try{localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify({balance:BALANCE,stats:stats}));}catch(e){}});
         
         getParams();
-        console.log('🎰 Старт. User:',USER_ID,'Баланс:',BALANCE,'Шансы:',odds);
     </script>
 </body>
 </html>
