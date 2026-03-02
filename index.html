@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,15 +9,15 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000000; color: #ffffff; padding: 15px; -webkit-user-select: none; user-select: none; }
-        .container { max-width: 500px; margin: 0 auto; height: 100%; overflow-y: auto; padding-bottom: 20px; }
-        .tabs { position: fixed; top: 15px; right: 15px; z-index: 1000; display: flex; gap: 10px; }
-        .tab-btn { background: #ffffff; color: #000000; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3); }
-        .tab-btn.active { background: #4CAF50; color: #ffffff; }
-        .screen { display: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #fff; }
+        .tabs { position: fixed; top: 0; left: 0; right: 0; background: #000; z-index: 1000; display: flex; justify-content: flex-end; gap: 10px; padding: 15px; border-bottom: 2px solid #333; }
+        .tab-btn { background: #fff; color: #000; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+        .tab-btn.active { background: #4CAF50; color: #fff; }
+        .container { position: fixed; top: 70px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; padding: 0 15px 20px 15px; }
+        .screen { display: none; max-width: 500px; margin: 0 auto; }
         .screen.active { display: block; }
-        .balance-card { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); padding: 20px; border-radius: 20px; margin-bottom: 15px; margin-top: 50px; border: 2px solid #ffffff; }
-        .balance-amount { font-size: 36px; font-weight: 900; color: #ffffff; margin: 8px 0; text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); transition: all 0.6s; }
+        .balance-card { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 2px solid #fff; }
+        .balance-amount { font-size: 36px; font-weight: 900; color: #fff; margin: 8px 0; text-shadow: 0 0 20px rgba(255,255,255,0.5); transition: all 0.6s; }
         .balance-amount.win-animation { animation: balanceWin 0.6s ease; }
         .balance-amount.lose-animation { animation: balanceLose 0.6s ease; }
         @keyframes balanceWin { 0% { transform: scale(1); color: #fff; } 50% { transform: scale(1.15); color: #4CAF50; text-shadow: 0 0 30px #4CAF50; } 100% { transform: scale(1); color: #fff; } }
@@ -27,8 +28,8 @@
         .slot.spinning { animation: spin 0.1s linear infinite; }
         @keyframes spin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
         .result-line { text-align: center; font-size: 16px; font-weight: 700; margin-bottom: 15px; min-height: 24px; padding: 8px; border-radius: 10px; }
-        .result-line.win { color: #4CAF50; background: rgba(76, 175, 80, 0.1); }
-        .result-line.lose { color: #f44; background: rgba(255, 68, 68, 0.1); }
+        .result-line.win { color: #4CAF50; background: rgba(76,175,80,0.1); }
+        .result-line.lose { color: #f44; background: rgba(255,68,68,0.1); }
         .spin-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .mode-btn { padding: 12px; border-radius: 12px; border: 2px solid #fff; font-size: 14px; font-weight: 700; cursor: pointer; background: #000; color: #fff; }
         .mode-btn.active { background: #fff; color: #000; }
@@ -39,9 +40,9 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         .bet-input-section { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #fff; }
         .bet-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #fff; background: #000; color: #fff; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 12px; }
-        .bet-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .bet-buttons { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 15px; }
         .bet-quick { padding: 12px 8px; border-radius: 10px; border: 2px solid #fff; font-size: 13px; font-weight: 700; cursor: pointer; background: #000; color: #fff; }
-        .calculations { background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 12px; }
+        .calculations { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; }
         .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
         .calc-value.win { color: #4CAF50; font-weight: 700; }
         .calc-value.lose { color: #f44; font-weight: 700; }
@@ -54,7 +55,6 @@
         .payouts { background: #1a1a1a; padding: 18px; border-radius: 15px; border: 2px solid #333; margin-bottom: 20px; }
         .payout-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 15px; }
         .payout-row:last-child { border-bottom: none; }
-        .profile-screen { margin-top: 50px; }
         .profile-header { background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%); padding: 30px 20px; border-radius: 20px; margin-bottom: 20px; text-align: center; }
         .profile-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
         .stat-card { background: #1a1a1a; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #333; }
@@ -62,7 +62,7 @@
         .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #333; font-size: 15px; }
         .stat-row:last-child { border-bottom: none; }
         .stat-value { font-weight: 700; color: #4CAF50; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-content { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); padding: 40px 30px; border-radius: 20px; border: 3px solid #f44; text-align: center; max-width: 320px; }
         .modal-title { font-size: 28px; font-weight: 900; color: #f44; margin-bottom: 20px; }
@@ -94,16 +94,16 @@
                     <button class="mode-btn" id="fastMode" onclick="setMode('fast')">⚡ Быстрый</button>
                 </div>
                 <button class="spin-btn" id="spinBtn" onclick="handleSpin()">🎰 КРУТИТЬ</button>
-                <button class="stop-btn" id="stopBtn" onclick="stopAutoSpin()">🛑 ОСТАНОВИТЬ АВТО-СПИН</button>
+                <button class="stop-btn" id="stopBtn" onclick="stopAutoSpin()">🛑 ОСТАНОВИТЬ</button>
                 <div style="text-align: center; margin-top: 10px;">
                     <label style="font-size: 14px;">
                         <input type="checkbox" id="autoSpinCheck" style="margin-right: 5px;">
-                        🔄 Авто-спин (<span id="autoCount">0</span>/10)
+                        🔄 Авто-спин (до потери баланса)
                     </label>
                 </div>
             </div>
             <div class="bet-input-section">
-                <div style="font-size: 13px; margin-bottom: 10px; font-weight: 600;">💵 Укажите ТОЧНУЮ сумму ставки:</div>
+                <div style="font-size: 13px; margin-bottom: 10px; font-weight: 600;">💵 Укажите ТОЧНУЮ сумму:</div>
                 <input type="number" class="bet-input" id="betInput" placeholder="Любая сумма от 10,000" min="10000" step="1" oninput="updateCalculations()">
                 <div class="bet-buttons">
                     <button class="bet-quick" onclick="setQuickBet(10000)">10K</button>
@@ -117,7 +117,7 @@
                 </div>
             </div>
             <div class="odds-section" id="oddsSection" style="display: none;">
-                <div class="odds-title">🔧 АДМИН: Настройка шансов ДЛЯ ВСЕХ</div>
+                <div class="odds-title">🔧 АДМИН: Шансы ДЛЯ ВСЕХ</div>
                 <div class="odds-control"><div class="odds-label"><span>💎 Алмазы (x100)</span><span id="c0">10%</span></div><input type="range" class="odds-slider" id="s0" min="1" max="50" value="10" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍒 Вишни (x50)</span><span id="c1">15%</span></div><input type="range" class="odds-slider" id="s1" min="1" max="50" value="15" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍋 Лимоны (x30)</span><span id="c2">15%</span></div><input type="range" class="odds-slider" id="s2" min="1" max="50" value="15" oninput="updateOdds()"></div>
@@ -140,24 +140,22 @@
             </div>
         </div>
         <div class="screen" id="profileScreen">
-            <div class="profile-screen">
-                <div class="profile-header">
-                    <div class="profile-title">👤 Мой Профиль</div>
-                    <div style="font-size: 14px; opacity: 0.9;" id="profileId">ID: Loading...</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-title">📊 Вечная статистика</div>
-                    <div class="stat-row"><span style="opacity: 0.8;">🎰 Всего спинов:</span><span class="stat-value" id="totalSpins">0</span></div>
-                    <div class="stat-row"><span style="opacity: 0.8;">💎 Макс выигрыш:</span><span class="stat-value" id="maxWin">0 💎</span></div>
-                    <div class="stat-row"><span style="opacity: 0.8;">🏆 Всего выиграно:</span><span class="stat-value" id="totalWon">0 💎</span></div>
-                    <div class="stat-row"><span style="opacity: 0.8;">📉 Всего проиграно:</span><span class="stat-value" id="totalLost">0 💎</span></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-title">💰 Текущая сессия</div>
-                    <div class="stat-row"><span style="opacity: 0.8;">Начальный:</span><span class="stat-value" id="initialBalance">0 💎</span></div>
-                    <div class="stat-row"><span style="opacity: 0.8;">Текущий:</span><span class="stat-value" id="currentBalance">0 💎</span></div>
-                    <div class="stat-row"><span style="opacity: 0.8;">Изменение:</span><span class="stat-value" id="balanceChange">0 💎</span></div>
-                </div>
+            <div class="profile-header">
+                <div class="profile-title">👤 Мой Профиль</div>
+                <div style="font-size: 14px; opacity: 0.9;" id="profileId">ID: Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">📊 Вечная статистика</div>
+                <div class="stat-row"><span style="opacity: 0.8;">🎰 Всего спинов:</span><span class="stat-value" id="totalSpins">0</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">💎 Макс выигрыш:</span><span class="stat-value" id="maxWin">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">🏆 Всего выиграно:</span><span class="stat-value" id="totalWon">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">📉 Всего проиграно:</span><span class="stat-value" id="totalLost">0 💎</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">💰 Текущая сессия</div>
+                <div class="stat-row"><span style="opacity: 0.8;">Начальный:</span><span class="stat-value" id="initialBalance">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">Текущий:</span><span class="stat-value" id="currentBalance">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">Изменение:</span><span class="stat-value" id="balanceChange">0 💎</span></div>
             </div>
         </div>
     </div>
@@ -170,8 +168,8 @@
     </div>
     <script>
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
-        const ADMIN_ID=2026521416;
-        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',autoSpinCount=0,isAdmin=false,stopAutoSpinFlag=false;
+        const ADMIN_ID=2026521416;const ODDS_KEY='GLOBAL_CASINO_ODDS_V3';
+        let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',isAdmin=false,stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[10,15,15,15,15,10,10,10];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
@@ -184,7 +182,7 @@
             BALANCE=parseInt(url.get('tokens'))||0;
             INITIAL_BALANCE=BALANCE;
             isAdmin=(USER_ID===ADMIN_ID);
-            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН режим активирован');}
+            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН');}
             loadStats();loadOdds();updateBalance();updateProfileStats();
             document.getElementById('betInput').value=BET;updateCalculations();
         }
@@ -202,36 +200,39 @@
             }
         }
         
-        function loadStats(){
-            const saved=localStorage.getItem('casino_forever_'+USER_ID);
-            if(saved)stats=JSON.parse(saved);
-        }
-        
-        function saveStats(){
-            localStorage.setItem('casino_forever_'+USER_ID,JSON.stringify(stats));
-        }
+        function loadStats(){const saved=localStorage.getItem('casino_forever_'+USER_ID);if(saved)stats=JSON.parse(saved);}
+        function saveStats(){localStorage.setItem('casino_forever_'+USER_ID,JSON.stringify(stats));}
         
         function loadOdds(){
-            const saved=localStorage.getItem('casino_odds_all');
-            if(saved){
-                odds=JSON.parse(saved);
+            try{
+                const saved=localStorage.getItem(ODDS_KEY);
+                if(saved){
+                    odds=JSON.parse(saved);
+                    console.log('✅ ГЛОБАЛЬНЫЕ шансы загружены:',odds);
+                }else{
+                    localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
+                    console.log('ℹ️ Шансы по умолчанию установлены');
+                }
                 if(isAdmin){
                     for(let i=0;i<8;i++){
                         document.getElementById('s'+i).value=odds[i];
                         document.getElementById('c'+i).textContent=odds[i]+'%';
                     }
                 }
-            }
+            }catch(e){console.error('Ошибка загрузки:',e);}
         }
         
         function updateOdds(){
-            if(!isAdmin){showError('⛔ Только админ может менять шансы!');return;}
+            if(!isAdmin){showError('⛔ Только админ!');return;}
             for(let i=0;i<8;i++){
                 odds[i]=parseInt(document.getElementById('s'+i).value);
                 document.getElementById('c'+i).textContent=odds[i]+'%';
             }
-            localStorage.setItem('casino_odds_all',JSON.stringify(odds));
-            console.log('🔧 АДМИН установил шансы ДЛЯ ВСЕХ:',odds);
+            try{
+                localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
+                console.log('✅ ГЛОБАЛЬНЫЕ шансы сохранены ДЛЯ ВСЕХ:',odds);
+                if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+            }catch(e){console.error('Ошибка:',e);}
         }
         
         function getWeightedSymbol(){
@@ -271,7 +272,7 @@
             stopAutoSpinFlag=true;
             document.getElementById('stopBtn').classList.remove('show');
             document.getElementById('spinBtn').style.display='block';
-            console.log('🛑 Авто-спин остановлен пользователем');
+            console.log('🛑 Остановлено');
             if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning');
         }
         
@@ -282,26 +283,15 @@
                 document.getElementById('spinBtn').style.display='none';
                 document.getElementById('stopBtn').classList.add('show');
                 
-                for(let i=0;i<10;i++){
-                    if(stopAutoSpinFlag){
-                        console.log('🛑 Остановлено на спине',i+1);
-                        break;
-                    }
-                    
-                    autoSpinCount=i+1;
-                    document.getElementById('autoCount').textContent=autoSpinCount;
-                    
+                let spinCount=0;
+                while(BALANCE>=getBetAmount()&&!stopAutoSpinFlag){
+                    spinCount++;
                     const ok=await spin();
-                    if(!ok){
-                        document.getElementById('autoSpinCheck').checked=false;
-                        break;
-                    }
-                    
+                    if(!ok)break;
                     await new Promise(r=>setTimeout(r,spinMode==='fast'?500:1000));
                 }
                 
-                autoSpinCount=0;
-                document.getElementById('autoCount').textContent='0';
+                console.log('Автоспин завершён. Спинов:',spinCount);
                 document.getElementById('autoSpinCheck').checked=false;
                 document.getElementById('stopBtn').classList.remove('show');
                 document.getElementById('spinBtn').style.display='block';
@@ -311,8 +301,8 @@
         async function spin(){
             if(isSpinning)return false;
             BET=getBetAmount();
-            if(BALANCE<BET){showError(`❌ Недостаточно токенов!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
-            if(BET<10000){showError('❌ Минимум 10,000 токенов!');return false;}
+            if(BALANCE<BET){showError(`❌ Недостаточно!\n\nНужно: ${BET.toLocaleString('ru-RU')} 💎\nУ вас: ${BALANCE.toLocaleString('ru-RU')} 💎`);return false;}
+            if(BET<10000){showError('❌ Минимум 10,000!');return false;}
             isSpinning=true;
             document.getElementById('spinBtn').disabled=true;
             stats.totalSpins++;
@@ -353,14 +343,14 @@
         function showResult(t,w){const l=document.getElementById('resultLine');l.textContent=t;l.className='result-line '+(w?'win':'lose');}
         
         function exitAndSave(){
-            console.log('🏠 Выход, отправляю боту...');
+            console.log('🏠 Выход');
             try{
-                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,stats:stats,timestamp:Date.now()};
+                const change=BALANCE-INITIAL_BALANCE;
+                const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
+                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Данные отправлены боту:',data);
-            }catch(e){
-                console.error('❌ Ошибка отправки:',e);
-            }
+                console.log('✅ Отправлено с %:',data);
+            }catch(e){console.error('❌ Ошибка:',e);}
         }
         
         window.addEventListener('beforeunload',()=>{
@@ -371,7 +361,7 @@
         });
         
         getParams();
-        console.log('🎰 Старт. User:',USER_ID,'Админ:',isAdmin,'Баланс:',BALANCE);
+        console.log('🎰 Старт. User:',USER_ID,'Баланс:',BALANCE,'Шансы:',odds);
     </script>
 </body>
 </html>
