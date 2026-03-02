@@ -45,12 +45,10 @@
         .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
         .calc-value.win { color: #4CAF50; font-weight: 700; }
         .calc-value.lose { color: #f44; font-weight: 700; }
-        .odds-section { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #f80; }
-        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #f80; }
-        .odds-control { margin-bottom: 12px; }
-        .odds-label { font-size: 13px; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .odds-slider { width: 100%; height: 6px; border-radius: 5px; background: #333; outline: none; }
-        .odds-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; }
+        .odds-info { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #4CAF50; }
+        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #4CAF50; }
+        .odds-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 14px; }
+        .odds-row:last-child { border-bottom: none; }
         .payouts { background: #1a1a1a; padding: 18px; border-radius: 15px; border: 2px solid #333; margin-bottom: 20px; }
         .payout-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 15px; }
         .payout-row:last-child { border-bottom: none; }
@@ -115,16 +113,16 @@
                     <div class="calc-row"><span>📉 При проигрыше:</span><span class="calc-value lose" id="maxLose">-0</span></div>
                 </div>
             </div>
-            <div class="odds-section" id="oddsSection" style="display: none;">
-                <div class="odds-title">🔧 АДМИН: Шансы для ВСЕХ</div>
-                <div class="odds-control"><div class="odds-label"><span>💎 Алмазы (x100)</span><span id="c0">10%</span></div><input type="range" class="odds-slider" id="s0" min="1" max="50" value="10" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>🍒 Вишни (x50)</span><span id="c1">15%</span></div><input type="range" class="odds-slider" id="s1" min="1" max="50" value="15" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>🍋 Лимоны (x30)</span><span id="c2">15%</span></div><input type="range" class="odds-slider" id="s2" min="1" max="50" value="15" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>🍊 Апельсины (x20)</span><span id="c3">15%</span></div><input type="range" class="odds-slider" id="s3" min="1" max="50" value="15" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>🍇 Виноград (x15)</span><span id="c4">15%</span></div><input type="range" class="odds-slider" id="s4" min="1" max="50" value="15" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>⭐ Звёзды (x10)</span><span id="c5">10%</span></div><input type="range" class="odds-slider" id="s5" min="1" max="50" value="10" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>🔔 Колокола (x5)</span><span id="c6">10%</span></div><input type="range" class="odds-slider" id="s6" min="1" max="50" value="10" oninput="updateOdds()"></div>
-                <div class="odds-control"><div class="odds-label"><span>7️⃣ Семёрки (x3)</span><span id="c7">10%</span></div><input type="range" class="odds-slider" id="s7" min="1" max="50" value="10" oninput="updateOdds()"></div>
+            <div class="odds-info" id="oddsInfo">
+                <div class="odds-title">📊 Текущие шансы</div>
+                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">10%</span></div>
+                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">15%</span></div>
+                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">15%</span></div>
+                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">15%</span></div>
+                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">15%</span></div>
+                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">10%</span></div>
+                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">10%</span></div>
+                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">10%</span></div>
             </div>
             <div class="payouts">
                 <div style="font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center;">🎯 Выплаты</div>
@@ -167,7 +165,7 @@
     </div>
     <script>
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
-        const ADMIN_ID=2026521416;const ODDS_KEY='__GLOBAL_ODDS__';
+        const ADMIN_ID=2026521416;
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',isAdmin=false,stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[10,15,15,15,15,10,10,10];
@@ -181,9 +179,28 @@
             BALANCE=parseInt(url.get('tokens'))||0;
             INITIAL_BALANCE=BALANCE;
             isAdmin=(USER_ID===ADMIN_ID);
-            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН');}
-            loadStats();loadOdds();updateBalance();updateProfileStats();
+            
+            const oddsParam=url.get('odds');
+            if(oddsParam){
+                try{
+                    const parsed=JSON.parse(decodeURIComponent(oddsParam));
+                    if(Array.isArray(parsed)&&parsed.length===8){
+                        odds=parsed;
+                        console.log('✅ Шансы из URL:',odds);
+                    }
+                }catch(e){console.error('Ошибка парсинга шансов:',e);}
+            }
+            
+            updateOddsDisplay();
+            loadStats();updateBalance();updateProfileStats();
             document.getElementById('betInput').value=BET;updateCalculations();
+        }
+        
+        function updateOddsDisplay(){
+            for(let i=0;i<8;i++){
+                const el=document.getElementById('o'+i);
+                if(el)el.textContent=odds[i]+'%';
+            }
         }
         
         function showScreen(s){
@@ -201,38 +218,6 @@
         
         function loadStats(){const saved=localStorage.getItem('casino_stats_'+USER_ID);if(saved)stats=JSON.parse(saved);}
         function saveStats(){localStorage.setItem('casino_stats_'+USER_ID,JSON.stringify(stats));}
-        
-        function loadOdds(){
-            try{
-                const saved=localStorage.getItem(ODDS_KEY);
-                if(saved){
-                    const loaded=JSON.parse(saved);
-                    if(Array.isArray(loaded)&&loaded.length===8){
-                        odds=loaded;
-                        console.log('✅ Шансы:',odds);
-                    }
-                }else{
-                    localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
-                }
-                if(isAdmin){
-                    for(let i=0;i<8;i++){
-                        document.getElementById('s'+i).value=odds[i];
-                        document.getElementById('c'+i).textContent=odds[i]+'%';
-                    }
-                }
-            }catch(e){console.error('Ошибка:',e);}
-        }
-        
-        function updateOdds(){
-            if(!isAdmin){showError('⛔ Только админ!');return;}
-            for(let i=0;i<8;i++){
-                odds[i]=parseInt(document.getElementById('s'+i).value);
-                document.getElementById('c'+i).textContent=odds[i]+'%';
-            }
-            localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
-            console.log('✅ ШАНСЫ ДЛЯ ВСЕХ:',odds);
-            if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
-        }
         
         function getWeightedSymbol(){
             const total=odds.reduce((a,b)=>a+b,0);
@@ -340,8 +325,8 @@
             try{
                 const data={action:'realtime_update',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
-                console.log('📡 Баланс отправлен:',BALANCE);
-            }catch(e){console.error('Ошибка:',e);}
+                console.log('📡 Баланс:',BALANCE);
+            }catch(e){console.error('Ошибка sendData:',e);}
         }
         
         function exitAndSave(){
@@ -351,7 +336,7 @@
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
                 const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Выход:',{balance:BALANCE,change:change,percent:percent+'%'});
+                console.log('✅ Выход:',{balance:BALANCE,change:change});
             }catch(e){console.error('Ошибка:',e);}
         }
         
@@ -362,4 +347,3 @@
     </script>
 </body>
 </html>
-
