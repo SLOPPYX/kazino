@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,12 +7,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
+        html, body { width: 100%; height: 100%; position: fixed; overflow: hidden; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #fff; }
         .tabs { position: fixed; top: 0; left: 0; right: 0; background: #000; z-index: 1000; display: flex; justify-content: flex-end; gap: 10px; padding: 15px; border-bottom: 2px solid #333; }
         .tab-btn { background: #fff; color: #000; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
         .tab-btn.active { background: #4CAF50; color: #fff; }
-        .container { position: fixed; top: 70px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; padding: 0 15px 20px 15px; }
+        .container { position: absolute; top: 70px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; padding: 0 15px 20px 15px; }
         .screen { display: none; max-width: 500px; margin: 0 auto; }
         .screen.active { display: block; }
         .balance-card { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 2px solid #fff; }
@@ -117,7 +116,7 @@
                 </div>
             </div>
             <div class="odds-section" id="oddsSection" style="display: none;">
-                <div class="odds-title">🔧 АДМИН: Шансы ДЛЯ ВСЕХ</div>
+                <div class="odds-title">🔧 АДМИН: Шансы ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ</div>
                 <div class="odds-control"><div class="odds-label"><span>💎 Алмазы (x100)</span><span id="c0">10%</span></div><input type="range" class="odds-slider" id="s0" min="1" max="50" value="10" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍒 Вишни (x50)</span><span id="c1">15%</span></div><input type="range" class="odds-slider" id="s1" min="1" max="50" value="15" oninput="updateOdds()"></div>
                 <div class="odds-control"><div class="odds-label"><span>🍋 Лимоны (x30)</span><span id="c2">15%</span></div><input type="range" class="odds-slider" id="s2" min="1" max="50" value="15" oninput="updateOdds()"></div>
@@ -168,7 +167,7 @@
     </div>
     <script>
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
-        const ADMIN_ID=2026521416;const ODDS_KEY='GLOBAL_CASINO_ODDS_V3';
+        const ADMIN_ID=2026521416;const GLOBAL_ODDS_KEY='__CASINO_GLOBAL_ODDS_V4__';
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',isAdmin=false,stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[10,15,15,15,15,10,10,10];
@@ -182,7 +181,7 @@
             BALANCE=parseInt(url.get('tokens'))||0;
             INITIAL_BALANCE=BALANCE;
             isAdmin=(USER_ID===ADMIN_ID);
-            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН');}
+            if(isAdmin){document.getElementById('oddsSection').style.display='block';console.log('🔧 АДМИН активирован');}
             loadStats();loadOdds();updateBalance();updateProfileStats();
             document.getElementById('betInput').value=BET;updateCalculations();
         }
@@ -205,13 +204,16 @@
         
         function loadOdds(){
             try{
-                const saved=localStorage.getItem(ODDS_KEY);
+                const saved=localStorage.getItem(GLOBAL_ODDS_KEY);
                 if(saved){
-                    odds=JSON.parse(saved);
-                    console.log('✅ ГЛОБАЛЬНЫЕ шансы загружены:',odds);
+                    const loaded=JSON.parse(saved);
+                    if(Array.isArray(loaded)&&loaded.length===8){
+                        odds=loaded;
+                        console.log('✅ ГЛОБАЛЬНЫЕ шансы загружены:',odds);
+                    }
                 }else{
-                    localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
-                    console.log('ℹ️ Шансы по умолчанию установлены');
+                    localStorage.setItem(GLOBAL_ODDS_KEY,JSON.stringify(odds));
+                    console.log('ℹ️ Установлены шансы по умолчанию');
                 }
                 if(isAdmin){
                     for(let i=0;i<8;i++){
@@ -219,20 +221,20 @@
                         document.getElementById('c'+i).textContent=odds[i]+'%';
                     }
                 }
-            }catch(e){console.error('Ошибка загрузки:',e);}
+            }catch(e){console.error('Ошибка загрузки шансов:',e);odds=[10,15,15,15,15,10,10,10];}
         }
         
         function updateOdds(){
-            if(!isAdmin){showError('⛔ Только админ!');return;}
+            if(!isAdmin){showError('⛔ Только админ может менять шансы!');return;}
             for(let i=0;i<8;i++){
                 odds[i]=parseInt(document.getElementById('s'+i).value);
                 document.getElementById('c'+i).textContent=odds[i]+'%';
             }
             try{
-                localStorage.setItem(ODDS_KEY,JSON.stringify(odds));
-                console.log('✅ ГЛОБАЛЬНЫЕ шансы сохранены ДЛЯ ВСЕХ:',odds);
+                localStorage.setItem(GLOBAL_ODDS_KEY,JSON.stringify(odds));
+                console.log('✅ ГЛОБАЛЬНЫЕ шансы СОХРАНЕНЫ ДЛЯ ВСЕХ:',odds);
                 if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
-            }catch(e){console.error('Ошибка:',e);}
+            }catch(e){console.error('Ошибка сохранения шансов:',e);}
         }
         
         function getWeightedSymbol(){
@@ -272,7 +274,7 @@
             stopAutoSpinFlag=true;
             document.getElementById('stopBtn').classList.remove('show');
             document.getElementById('spinBtn').style.display='block';
-            console.log('🛑 Остановлено');
+            console.log('🛑 Автоспин остановлен');
             if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning');
         }
         
@@ -282,7 +284,6 @@
                 stopAutoSpinFlag=false;
                 document.getElementById('spinBtn').style.display='none';
                 document.getElementById('stopBtn').classList.add('show');
-                
                 let spinCount=0;
                 while(BALANCE>=getBetAmount()&&!stopAutoSpinFlag){
                     spinCount++;
@@ -290,7 +291,6 @@
                     if(!ok)break;
                     await new Promise(r=>setTimeout(r,spinMode==='fast'?500:1000));
                 }
-                
                 console.log('Автоспин завершён. Спинов:',spinCount);
                 document.getElementById('autoSpinCheck').checked=false;
                 document.getElementById('stopBtn').classList.remove('show');
@@ -343,25 +343,23 @@
         function showResult(t,w){const l=document.getElementById('resultLine');l.textContent=t;l.className='result-line '+(w?'win':'lose');}
         
         function exitAndSave(){
-            console.log('🏠 Выход');
+            console.log('🏠 Выход из казино');
             try{
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
                 const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Отправлено с %:',data);
-            }catch(e){console.error('❌ Ошибка:',e);}
+                console.log('✅ Данные отправлены боту:',{balance:BALANCE,change:change,percent:percent+'%'});
+            }catch(e){console.error('❌ Ошибка отправки:',e);}
         }
         
-        window.addEventListener('beforeunload',()=>{
-            try{
-                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,stats:stats,timestamp:Date.now()};
-                localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify(data));
-            }catch(e){}
-        });
+        window.addEventListener('beforeunload',()=>{try{const data={action:'casino_save',user_id:USER_ID,balance:BALANCE,stats:stats};localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify(data));}catch(e){}});
         
         getParams();
-        console.log('🎰 Старт. User:',USER_ID,'Баланс:',BALANCE,'Шансы:',odds);
+        console.log('🎰 Казино запущено');
+        console.log('User:',USER_ID,'Админ:',isAdmin,'Баланс:',BALANCE);
+        console.log('Шансы загружены:',odds);
     </script>
 </body>
 </html>
+
