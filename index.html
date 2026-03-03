@@ -114,15 +114,15 @@
                 </div>
             </div>
             <div class="odds-info" id="oddsInfo">
-                <div class="odds-title">🎲 Шансы (увеличены!)</div>
-                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">--%</span></div>
-                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">--%</span></div>
-                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">--%</span></div>
-                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">--%</span></div>
-                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">--%</span></div>
-                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">--%</span></div>
-                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">--%</span></div>
-                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">--%</span></div>
+                <div class="odds-title">🎲 Шансы (высокие!)</div>
+                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">30%</span></div>
+                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">25%</span></div>
+                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">15%</span></div>
+                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">10%</span></div>
+                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">10%</span></div>
+                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">5%</span></div>
+                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">3%</span></div>
+                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">2%</span></div>
             </div>
             <div class="payouts">
                 <div style="font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center;">🎯 Выплаты</div>
@@ -179,47 +179,33 @@
                 BALANCE=parseInt(params.get('tokens'))||0;
                 INITIAL_BALANCE=BALANCE;
                 
-                console.log('📥 Параметры:');
-                console.log('User:',USER_ID,'Custom:',CUSTOM_ID,'Баланс:',BALANCE);
-                
-                const o0=params.get('o0');
-                const o1=params.get('o1');
-                const o2=params.get('o2');
-                const o3=params.get('o3');
-                const o4=params.get('o4');
-                const o5=params.get('o5');
-                const o6=params.get('o6');
-                const o7=params.get('o7');
-                
-                if(o0&&o1&&o2&&o3&&o4&&o5&&o6&&o7){
-                    odds=[
-                        parseInt(o0)||30,
-                        parseInt(o1)||25,
-                        parseInt(o2)||15,
-                        parseInt(o3)||10,
-                        parseInt(o4)||10,
-                        parseInt(o5)||5,
-                        parseInt(o6)||3,
-                        parseInt(o7)||2
-                    ];
-                    console.log('✅ ШАНСЫ ПОЛУЧЕНЫ:',odds);
-                }else{
-                    console.log('⚠️ ВЫСОКИЕ шансы по умолчанию:',odds);
+                const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
+                if(savedBalance){
+                    BALANCE=parseInt(savedBalance);
+                    console.log('💾 Баланс загружен из памяти:',BALANCE);
                 }
                 
-                updateOddsDisplay();
-                loadStats();updateBalance();updateProfileStats();
+                const o0=params.get('o0');const o1=params.get('o1');const o2=params.get('o2');const o3=params.get('o3');
+                const o4=params.get('o4');const o5=params.get('o5');const o6=params.get('o6');const o7=params.get('o7');
+                
+                if(o0&&o1&&o2&&o3&&o4&&o5&&o6&&o7){
+                    odds=[parseInt(o0)||30,parseInt(o1)||25,parseInt(o2)||15,parseInt(o3)||10,parseInt(o4)||10,parseInt(o5)||5,parseInt(o6)||3,parseInt(o7)||2];
+                }
+                
+                updateOddsDisplay();loadStats();updateBalance();updateProfileStats();
                 document.getElementById('betInput').value=BET;updateCalculations();
-                console.log('🎰 OK');
+                console.log('🎰 Запуск. User:',USER_ID,'Баланс:',BALANCE);
             }catch(e){console.error('❌ Ошибка:',e);}
         }
         
-        function updateOddsDisplay(){
-            for(let i=0;i<8;i++){
-                const el=document.getElementById('o'+i);
-                if(el)el.textContent=odds[i]+'%';
-            }
+        function saveBalanceToMemory(){
+            try{
+                localStorage.setItem('casino_balance_'+USER_ID,BALANCE.toString());
+                console.log('💾 Баланс сохранён в памяти:',BALANCE);
+            }catch(e){console.error('Ошибка сохранения:',e);}
         }
+        
+        function updateOddsDisplay(){for(let i=0;i<8;i++){const el=document.getElementById('o'+i);if(el)el.textContent=odds[i]+'%';}}
         
         function showScreen(s){
             document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -261,7 +247,10 @@
             el.style.color=c>=0?'#4CAF50':'#ff4444';
         }
         
-        function updateBalance(){document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;}
+        function updateBalance(){
+            document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
+            saveBalanceToMemory();
+        }
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
         function getBetAmount(){let a=parseInt(document.getElementById('betInput').value)||10000;if(a<10000)a=10000;if(a>BALANCE)a=BALANCE;return a;}
@@ -306,7 +295,8 @@
                 document.getElementById('spinBtn').disabled=true;
                 stats.totalSpins++;
                 BALANCE-=BET;
-                updateBalance();animateBalance(false);
+                updateBalance();
+                animateBalance(false);
                 const slots=[document.getElementById('slot1'),document.getElementById('slot2'),document.getElementById('slot3')];
                 slots.forEach(s=>s.classList.add('spinning'));
                 if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');
@@ -332,7 +322,9 @@
                     stats.totalLost+=BET;
                     showResult(`💔 Проигрыш -${BET.toLocaleString('ru-RU')} 💎`,false);
                 }
-                updateBalance();updateCalculations();saveStats();
+                updateBalance();
+                updateCalculations();
+                saveStats();
                 await new Promise(r=>setTimeout(r,spinMode==='fast'?300:600));
                 document.getElementById('spinBtn').disabled=false;
                 isSpinning=false;
@@ -344,40 +336,22 @@
         
         function exitAndSave(){
             try{
-                console.log('🏠 ВЫХОД - сохранение баланса');
+                console.log('🏠 Выход. Баланс:',BALANCE);
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
-                const data={
-                    action:'casino_save',
-                    user_id:USER_ID,
-                    custom_id:CUSTOM_ID,
-                    balance:BALANCE,
-                    initial:INITIAL_BALANCE,
-                    change:change,
-                    percent:percent,
-                    stats:stats,
-                    timestamp:Date.now()
-                };
-                console.log('📤 Отправка боту:',{balance:BALANCE,change:change,percent:percent});
+                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Данные отправлены, закрытие через 500ms');
-                setTimeout(()=>tg.close(),500);
-            }catch(e){
-                console.error('❌ Ошибка exit:',e);
-                tg.close();
-            }
+                saveBalanceToMemory();
+                setTimeout(()=>tg.close(),300);
+            }catch(e){console.error('Ошибка:',e);tg.close();}
         }
         
-        window.addEventListener('beforeunload',()=>{
-            try{
-                console.log('💾 Авто-бэкап перед выходом');
-                const data={action:'casino_save',user_id:USER_ID,balance:BALANCE,stats:stats,timestamp:Date.now()};
-                localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify(data));
-            }catch(e){}
-        });
+        window.addEventListener('beforeunload',()=>{saveBalanceToMemory();});
+        setInterval(()=>{saveBalanceToMemory();},10000);
         
         getParams();
-        console.log('🎰 Казино запущено. Высокие шансы активированы!');
+        console.log('🎰 Казино запущено. Баланс автоматически сохраняется!');
     </script>
 </body>
 </html>
+
