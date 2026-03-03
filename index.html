@@ -45,8 +45,8 @@
         .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
         .calc-value.win { color: #4CAF50; font-weight: 700; }
         .calc-value.lose { color: #f44; font-weight: 700; }
-        .odds-info { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #f80; }
-        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #f80; }
+        .odds-info { background: #1a1a1a; padding: 18px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #4CAF50; }
+        .odds-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; color: #4CAF50; }
         .odds-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 14px; }
         .odds-row:last-child { border-bottom: none; }
         .payouts { background: #1a1a1a; padding: 18px; border-radius: 15px; border: 2px solid #333; margin-bottom: 20px; }
@@ -114,7 +114,7 @@
                 </div>
             </div>
             <div class="odds-info" id="oddsInfo">
-                <div class="odds-title">🎲 Шансы (настраиваются в боте)</div>
+                <div class="odds-title">🎲 Шансы (увеличены!)</div>
                 <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">--%</span></div>
                 <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">--%</span></div>
                 <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">--%</span></div>
@@ -167,7 +167,7 @@
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
-        let odds=[10,15,15,15,15,10,10,10];
+        let odds=[30,25,15,10,10,5,3,2];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
@@ -179,10 +179,8 @@
                 BALANCE=parseInt(params.get('tokens'))||0;
                 INITIAL_BALANCE=BALANCE;
                 
-                console.log('📥 Параметры получены:');
-                console.log('User ID:',USER_ID);
-                console.log('Custom ID:',CUSTOM_ID);
-                console.log('Баланс:',BALANCE);
+                console.log('📥 Параметры:');
+                console.log('User:',USER_ID,'Custom:',CUSTOM_ID,'Баланс:',BALANCE);
                 
                 const o0=params.get('o0');
                 const o1=params.get('o1');
@@ -195,25 +193,25 @@
                 
                 if(o0&&o1&&o2&&o3&&o4&&o5&&o6&&o7){
                     odds=[
-                        parseInt(o0)||10,
-                        parseInt(o1)||15,
+                        parseInt(o0)||30,
+                        parseInt(o1)||25,
                         parseInt(o2)||15,
-                        parseInt(o3)||15,
-                        parseInt(o4)||15,
-                        parseInt(o5)||10,
-                        parseInt(o6)||10,
-                        parseInt(o7)||10
+                        parseInt(o3)||10,
+                        parseInt(o4)||10,
+                        parseInt(o5)||5,
+                        parseInt(o6)||3,
+                        parseInt(o7)||2
                     ];
                     console.log('✅ ШАНСЫ ПОЛУЧЕНЫ:',odds);
                 }else{
-                    console.log('⚠️ Шансы не переданы, используются по умолчанию:',odds);
+                    console.log('⚠️ ВЫСОКИЕ шансы по умолчанию:',odds);
                 }
                 
                 updateOddsDisplay();
                 loadStats();updateBalance();updateProfileStats();
                 document.getElementById('betInput').value=BET;updateCalculations();
-                console.log('🎰 Инициализация завершена');
-            }catch(e){console.error('❌ Ошибка getParams:',e);}
+                console.log('🎰 OK');
+            }catch(e){console.error('❌ Ошибка:',e);}
         }
         
         function updateOddsDisplay(){
@@ -221,7 +219,6 @@
                 const el=document.getElementById('o'+i);
                 if(el)el.textContent=odds[i]+'%';
             }
-            console.log('📊 Шансы отображены на сайте:',odds);
         }
         
         function showScreen(s){
@@ -296,7 +293,7 @@
                     document.getElementById('stopBtn').classList.remove('show');
                     document.getElementById('spinBtn').style.display='block';
                 }else await spin();
-            }catch(e){console.error('Ошибка handleSpin:',e);}
+            }catch(e){console.error('Ошибка:',e);}
         }
         
         async function spin(){
@@ -347,18 +344,40 @@
         
         function exitAndSave(){
             try{
-                console.log('🏠 Выход из казино');
+                console.log('🏠 ВЫХОД - сохранение баланса');
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
-                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
-                console.log('📤 Отправка данных боту:',data);
+                const data={
+                    action:'casino_save',
+                    user_id:USER_ID,
+                    custom_id:CUSTOM_ID,
+                    balance:BALANCE,
+                    initial:INITIAL_BALANCE,
+                    change:change,
+                    percent:percent,
+                    stats:stats,
+                    timestamp:Date.now()
+                };
+                console.log('📤 Отправка боту:',{balance:BALANCE,change:change,percent:percent});
                 tg.sendData(JSON.stringify(data));
-            }catch(e){console.error('❌ Ошибка exitAndSave:',e);tg.close();}
+                console.log('✅ Данные отправлены, закрытие через 500ms');
+                setTimeout(()=>tg.close(),500);
+            }catch(e){
+                console.error('❌ Ошибка exit:',e);
+                tg.close();
+            }
         }
         
-        window.addEventListener('beforeunload',()=>{try{localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify({balance:BALANCE,stats:stats}));}catch(e){}});
+        window.addEventListener('beforeunload',()=>{
+            try{
+                console.log('💾 Авто-бэкап перед выходом');
+                const data={action:'casino_save',user_id:USER_ID,balance:BALANCE,stats:stats,timestamp:Date.now()};
+                localStorage.setItem('casino_backup_'+USER_ID,JSON.stringify(data));
+            }catch(e){}
+        });
         
         getParams();
+        console.log('🎰 Казино запущено. Высокие шансы активированы!');
     </script>
 </body>
 </html>
