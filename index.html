@@ -108,6 +108,13 @@
                     <button class="bet-quick" onclick="setQuickBet(100000)">100K</button>
                     <button class="bet-quick" onclick="setQuickBet(500000)">500K</button>
                 </div>
+                <div style="font-size: 11px; margin: 10px 0 5px 0; font-weight: 600; opacity: 0.7;">⚡ Множители:</div>
+                <div class="bet-buttons">
+                    <button class="bet-quick" onclick="multiplyBet(0.5)">x 0.5</button>
+                    <button class="bet-quick" onclick="multiplyBet(1.5)">x 1.5</button>
+                    <button class="bet-quick" onclick="multiplyBet(2)">x 2</button>
+                    <button class="bet-quick" onclick="multiplyBet(5)">x 5</button>
+                </div>
                 <div class="calculations">
                     <div class="calc-row"><span>💎 Макс выигрыш:</span><span class="calc-value win" id="maxWinCalc">+0</span></div>
                     <div class="calc-row"><span>📉 При проигрыше:</span><span class="calc-value lose" id="maxLose">-0</span></div>
@@ -160,9 +167,25 @@
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
         let odds=[30,25,20,18,18,15,12,10];
+        let bonusSymbols=[];
+        let baseOdds=[30,25,20,18,18,15,12,10];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
+        
+        function selectRandomBonusSymbols(){
+            bonusSymbols=[];
+            odds=[...baseOdds];
+            const availableIndices=[2,3,4,5,6,7];
+            for(let i=0;i<3;i++){
+                const randomIdx=Math.floor(Math.random()*availableIndices.length);
+                const symbolIdx=availableIndices.splice(randomIdx,1)[0];
+                bonusSymbols.push(symbolIdx);
+                odds[symbolIdx]=Math.min(odds[symbolIdx]+15,45);
+            }
+            console.log('🎲 Бонусные символы этой сессии:',bonusSymbols.map(idx=>SYMBOLS[idx]));
+            console.log('📊 Обновлённые шансы:',odds);
+        }
         function getParams(){
             try{
                 const params=new URLSearchParams(window.location.search);
@@ -176,6 +199,8 @@
                     BALANCE=parseInt(savedBalance);
                     console.log('💾 Баланс загружен из памяти:',BALANCE);
                 }
+                
+                selectRandomBonusSymbols();
                 
                 const o0=params.get('o0');const o1=params.get('o1');const o2=params.get('o2');const o3=params.get('o3');
                 const o4=params.get('o4');const o5=params.get('o5');const o6=params.get('o6');const o7=params.get('o7');
@@ -262,6 +287,16 @@
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
         function getBetAmount(){let a=parseInt(document.getElementById('betInput').value)||10000;if(a<10000)a=10000;if(a>BALANCE)a=BALANCE;return a;}
         function setQuickBet(a){document.getElementById('betInput').value=a;updateCalculations();if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');}
+        
+        function multiplyBet(multiplier){
+            const current=getBetAmount();
+            let newBet=Math.floor(current*multiplier);
+            if(newBet<10000)newBet=10000;
+            if(newBet>BALANCE)newBet=BALANCE;
+            document.getElementById('betInput').value=newBet;
+            updateCalculations();
+            if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');
+        }
         function setMode(m){spinMode=m;document.getElementById('normalMode').classList.toggle('active',m==='normal');document.getElementById('fastMode').classList.toggle('active',m==='fast');if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');}
         function showError(t){document.getElementById('errorText').textContent=t;document.getElementById('errorModal').classList.add('show');if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');}
         function closeModal(){document.getElementById('errorModal').classList.remove('show');}
@@ -354,7 +389,7 @@
         }
         
         window.addEventListener('beforeunload',()=>{saveBalanceToMemory();});
-        setInterval(()=>{saveBalanceToMemory();},10000);
+        setInterval(()=>{saveBalanceToMemory();},2000);
         
         getParams();
         console.log('🎰 Казино запущено. Баланс автоматически сохраняется!');
