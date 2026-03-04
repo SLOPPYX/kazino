@@ -113,18 +113,7 @@
                     <div class="calc-row"><span>📉 При проигрыше:</span><span class="calc-value lose" id="maxLose">-0</span></div>
                 </div>
             </div>
-            <div class="odds-info" id="oddsInfo">
-                <div class="odds-title">🎲 Шансы выпадения</div>
-                <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">30%</span></div>
-                <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">25%</span></div>
-                <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">15%</span></div>
-                <div class="odds-row"><span>🍊 Апельсины (x20)</span><span id="o3">10%</span></div>
-                <div class="odds-row"><span>🍇 Виноград (x15)</span><span id="o4">10%</span></div>
-                <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">5%</span></div>
-                <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">3%</span></div>
-                <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">2%</span></div>
-                <div class="odds-row" style="border-top: 2px solid #f44; margin-top: 10px; padding-top: 10px;"><span>❌ Проигрыш</span><span id="loseChance" style="color: #f44;">---%</span></div>
-            </div>
+            
             <div class="payouts">
                 <div style="font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center;">🎯 Выплаты</div>
                 <div class="payout-row"><span>💎💎💎</span><span>x100 🔥</span></div>
@@ -147,7 +136,9 @@
                 <div class="stat-row"><span style="opacity: 0.8;">🎰 Спинов:</span><span class="stat-value" id="totalSpins">0</span></div>
                 <div class="stat-row"><span style="opacity: 0.8;">💎 Макс выигрыш:</span><span class="stat-value" id="maxWin">0 💎</span></div>
                 <div class="stat-row"><span style="opacity: 0.8;">🏆 Выиграно:</span><span class="stat-value" id="totalWon">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">📊 Процент выигрыша:</span><span class="stat-value" id="winPercent">0%</span></div>
                 <div class="stat-row"><span style="opacity: 0.8;">📉 Проиграно:</span><span class="stat-value" id="totalLost">0 💎</span></div>
+                <div class="stat-row"><span style="opacity: 0.8;">📊 Процент проигрыша:</span><span class="stat-value" id="losePercent">0%</span></div>
             </div>
             <div class="stat-card">
                 <div class="stat-card-title">💰 Сессия</div>
@@ -168,7 +159,7 @@
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
-        let odds=[30,25,15,10,10,5,3,2];
+        let odds=[30,25,20,18,18,15,12,10];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
@@ -190,7 +181,7 @@
                 const o4=params.get('o4');const o5=params.get('o5');const o6=params.get('o6');const o7=params.get('o7');
                 
                 if(o0&&o1&&o2&&o3&&o4&&o5&&o6&&o7){
-                    odds=[parseInt(o0)||30,parseInt(o1)||25,parseInt(o2)||15,parseInt(o3)||10,parseInt(o4)||10,parseInt(o5)||5,parseInt(o6)||3,parseInt(o7)||2];
+                    odds=[parseInt(o0)||30,parseInt(o1)||25,parseInt(o2)||20,parseInt(o3)||18,parseInt(o4)||18,parseInt(o5)||15,parseInt(o6)||12,parseInt(o7)||10];
                 }
                 
                 updateOddsDisplay();loadStats();updateBalance();updateProfileStats();
@@ -249,6 +240,12 @@
             document.getElementById('maxWin').textContent=stats.maxWin.toLocaleString('ru-RU')+' 💎';
             document.getElementById('totalWon').textContent=stats.totalWon.toLocaleString('ru-RU')+' 💎';
             document.getElementById('totalLost').textContent=stats.totalLost.toLocaleString('ru-RU')+' 💎';
+            
+            const totalBets=stats.totalWon+stats.totalLost;
+            const winPercent=totalBets>0?(stats.totalWon/totalBets*100).toFixed(1):0;
+            const losePercent=totalBets>0?(stats.totalLost/totalBets*100).toFixed(1):0;
+            document.getElementById('winPercent').textContent=winPercent+'%';
+            document.getElementById('losePercent').textContent=losePercent+'%';
             document.getElementById('initialBalance').textContent=INITIAL_BALANCE.toLocaleString('ru-RU')+' 💎';
             document.getElementById('currentBalance').textContent=BALANCE.toLocaleString('ru-RU')+' 💎';
             const c=BALANCE-INITIAL_BALANCE;
@@ -364,5 +361,6 @@
     </script>
 </body>
 </html>
+
 
 
