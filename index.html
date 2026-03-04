@@ -101,7 +101,7 @@
             </div>
             <div class="bet-input-section">
                 <div style="font-size: 13px; margin-bottom: 10px; font-weight: 600;">💵 Ставка:</div>
-                <input type="number" class="bet-input" id="betInput" placeholder="От 10,000" min="10000" step="1" oninput="updateCalculations()">
+                <input type="number" inputmode="decimal" class="bet-input" id="betInput" placeholder="От 10,000" min="10000" step="1" oninput="updateCalculations()">
                 <div class="bet-buttons">
                     <button class="bet-quick" onclick="setQuickBet(10000)">10K</button>
                     <button class="bet-quick" onclick="setQuickBet(50000)">50K</button>
@@ -114,7 +114,7 @@
                 </div>
             </div>
             <div class="odds-info" id="oddsInfo">
-                <div class="odds-title">🎲 Шансы (высокие!)</div>
+                <div class="odds-title">🎲 Шансы выпадения</div>
                 <div class="odds-row"><span>💎 Алмазы (x100)</span><span id="o0">30%</span></div>
                 <div class="odds-row"><span>🍒 Вишни (x50)</span><span id="o1">25%</span></div>
                 <div class="odds-row"><span>🍋 Лимоны (x30)</span><span id="o2">15%</span></div>
@@ -123,6 +123,7 @@
                 <div class="odds-row"><span>⭐ Звёзды (x10)</span><span id="o5">5%</span></div>
                 <div class="odds-row"><span>🔔 Колокола (x5)</span><span id="o6">3%</span></div>
                 <div class="odds-row"><span>7️⃣ Семёрки (x3)</span><span id="o7">2%</span></div>
+                <div class="odds-row" style="border-top: 2px solid #f44; margin-top: 10px; padding-top: 10px;"><span>❌ Проигрыш</span><span id="loseChance" style="color: #f44;">---%</span></div>
             </div>
             <div class="payouts">
                 <div style="font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center;">🎯 Выплаты</div>
@@ -205,7 +206,16 @@
             }catch(e){console.error('Ошибка сохранения:',e);}
         }
         
-        function updateOddsDisplay(){for(let i=0;i<8;i++){const el=document.getElementById('o'+i);if(el)el.textContent=odds[i]+'%';}}
+        function updateOddsDisplay(){
+            for(let i=0;i<8;i++){
+                const el=document.getElementById('o'+i);
+                if(el)el.textContent=odds[i]+'%';
+            }
+            const totalWinChance=odds.reduce((a,b)=>a+b,0);
+            const loseChance=100-totalWinChance;
+            const loseEl=document.getElementById('loseChance');
+            if(loseEl)loseEl.textContent=loseChance.toFixed(0)+'%';
+        }
         
         function showScreen(s){
             document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -354,4 +364,5 @@
     </script>
 </body>
 </html>
+
 
