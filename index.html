@@ -166,9 +166,9 @@
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
-        let odds=[30,25,20,18,18,15,12,10];
+        let odds=[30,25,25,23,23,20,18,15];
         let bonusSymbols=[];
-        let baseOdds=[30,25,20,18,18,15,12,10];
+        let baseOdds=[30,25,25,23,23,20,18,15];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
@@ -194,13 +194,8 @@
                 BALANCE=parseInt(params.get('tokens'))||0;
                 INITIAL_BALANCE=BALANCE;
                 
-                const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
-                if(savedBalance){
-                    BALANCE=parseInt(savedBalance);
-                    console.log('💾 Баланс загружен из памяти:',BALANCE);
-                }
-                
                 selectRandomBonusSymbols();
+                console.log('💰 Баланс от бота:',BALANCE,'токенов');
                 
                 const o0=params.get('o0');const o1=params.get('o1');const o2=params.get('o2');const o3=params.get('o3');
                 const o4=params.get('o4');const o5=params.get('o5');const o6=params.get('o6');const o7=params.get('o7');
@@ -215,11 +210,11 @@
             }catch(e){console.error('❌ Ошибка:',e);}
         }
         
-        function saveBalanceToMemory(){
+        function saveBalanceToBot(){
             try{
-                localStorage.setItem('casino_balance_'+USER_ID,BALANCE.toString());
-                console.log('💾 Баланс сохранён в памяти:',BALANCE);
-            }catch(e){console.error('Ошибка сохранения:',e);}
+                const data={action:'balance_update',user_id:USER_ID,balance:BALANCE};
+                console.log('📤 Отправка баланса боту:',BALANCE);
+            }catch(e){console.error('Ошибка:',e);}
         }
         
         function updateOddsDisplay(){
@@ -281,7 +276,6 @@
         
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
-            saveBalanceToMemory();
         }
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
@@ -378,24 +372,39 @@
         
         function exitAndSave(){
             try{
-                console.log('🏠 Выход. Баланс:',BALANCE);
+                console.log('🏠 Выход из казино');
+                console.log('💰 Финальный баланс:',BALANCE.toLocaleString('ru-RU'));
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
-                const data={action:'casino_save',user_id:USER_ID,custom_id:CUSTOM_ID,balance:BALANCE,initial:INITIAL_BALANCE,change:change,percent:percent,stats:stats,timestamp:Date.now()};
+                const data={
+                    action:'casino_save',
+                    user_id:USER_ID,
+                    custom_id:CUSTOM_ID,
+                    balance:BALANCE,
+                    initial:INITIAL_BALANCE,
+                    change:change,
+                    percent:percent,
+                    stats:stats,
+                    timestamp:Date.now()
+                };
+                console.log('📤 Отправка данных боту...');
                 tg.sendData(JSON.stringify(data));
-                saveBalanceToMemory();
-                setTimeout(()=>tg.close(),300);
-            }catch(e){console.error('Ошибка:',e);tg.close();}
+                setTimeout(()=>{
+                    console.log('✅ Данные отправлены! Закрытие...');
+                    tg.close();
+                },500);
+            }catch(e){
+                console.error('❌ Ошибка отправки:',e);
+                tg.close();
+            }
         }
         
-        window.addEventListener('beforeunload',()=>{saveBalanceToMemory();});
-        setInterval(()=>{saveBalanceToMemory();},2000);
+        // Баланс сохраняется при нажатии кнопки Выход
+        // Баланс синхронизируется через бота при выходе
         
         getParams();
         console.log('🎰 Казино запущено. Баланс автоматически сохраняется!');
     </script>
 </body>
 </html>
-
-
 
