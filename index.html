@@ -166,9 +166,9 @@
         let tg=window.Telegram.WebApp;tg.ready();tg.expand();tg.disableVerticalSwipes();tg.MainButton.hide();
         let BALANCE=0,INITIAL_BALANCE=0,BET=10000,USER_ID=0,CUSTOM_ID='',isSpinning=false,spinMode='normal',stopAutoSpinFlag=false;
         let stats={totalSpins:0,maxWin:0,totalWon:0,totalLost:0};
-        let odds=[30,25,25,23,23,20,18,15];
+        let odds=[30,25,45,50,50,40,45,70];
         let bonusSymbols=[];
-        let baseOdds=[30,25,25,23,23,20,18,15];
+        let baseOdds=[30,25,45,50,50,40,45,70];
         const SYMBOLS=['💎','🍒','🍋','🍊','🍇','⭐','🔔','7️⃣'];
         const PAYOUTS={'💎':100,'🍒':50,'🍋':30,'🍊':20,'🍇':15,'⭐':10,'🔔':5,'7️⃣':3};
         
@@ -337,7 +337,22 @@
                 slots.forEach(s=>s.classList.add('spinning'));
                 if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');
                 await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
-                const res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
+                // 70% шанс что все 3 символа будут ОДИНАКОВЫМИ!
+                let res;
+                if(Math.random()<0.70){
+                    // Выигрыш - все 3 одинаковые
+                    const symbol=getWeightedSymbol();
+                    res=[symbol,symbol,symbol];
+                    console.log('🎯 Одинаковые символы:',symbol);
+                }else{
+                    // Проигрыш - разные символы
+                    res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
+                    // Убедимся что они точно разные
+                    while(res[0]===res[1]&&res[1]===res[2]){
+                        res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
+                    }
+                    console.log('❌ Разные символы');
+                }
                 const rt=spinMode==='fast'?100:200;
                 for(let i=0;i<3;i++){
                     await new Promise(r=>setTimeout(r,rt));
@@ -389,10 +404,8 @@
                 };
                 console.log('📤 Отправка данных боту...');
                 tg.sendData(JSON.stringify(data));
-                setTimeout(()=>{
-                    console.log('✅ Данные отправлены! Закрытие...');
-                    tg.close();
-                },500);
+                console.log('✅ Данные отправлены! Закрытие...');
+                tg.close();
             }catch(e){
                 console.error('❌ Ошибка отправки:',e);
                 tg.close();
@@ -407,4 +420,3 @@
     </script>
 </body>
 </html>
-
