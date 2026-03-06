@@ -339,11 +339,11 @@
                 await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
                 // 70% шанс что все 3 символа будут ОДИНАКОВЫМИ!
                 let res;
-                if(Math.random()<0.70){
+                if(Math.random()<0.45){
                     // Выигрыш - все 3 одинаковые
                     const symbol=getWeightedSymbol();
                     res=[symbol,symbol,symbol];
-                    console.log('🎯 Одинаковые символы:',symbol);
+                    console.log('🎯 Выигрыш! Одинаковые:',symbol);
                 }else{
                     // Проигрыш - разные символы
                     res=[getWeightedSymbol(),getWeightedSymbol(),getWeightedSymbol()];
