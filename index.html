@@ -277,24 +277,12 @@
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
             
-            // Отправляем обновлённый баланс боту после КАЖДОГО спина
-            sendBalanceToBot();
-        }
-        
-        function sendBalanceToBot(){
+            // Сохраняем в localStorage для синхронизации между сессиями
             try{
-                const data={
-                    action:'balance_update',
-                    user_id:USER_ID,
-                    balance:BALANCE,
-                    timestamp:Date.now()
-                };
-                tg.sendData(JSON.stringify(data));
-                console.log('💾 Баланс отправлен боту:',BALANCE);
-            }catch(e){
-                console.log('⚠️ Не удалось отправить баланс (это нормально в браузере)');
-            }
+                localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+            }catch(e){}
         }
+
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
         function getBetAmount(){let a=parseInt(document.getElementById('betInput').value)||10000;if(a<10000)a=10000;if(a>BALANCE)a=BALANCE;return a;}
@@ -438,4 +426,5 @@
     </script>
 </body>
 </html>
+
 
