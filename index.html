@@ -276,6 +276,24 @@
         
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
+            
+            // Отправляем обновлённый баланс боту после КАЖДОГО спина
+            sendBalanceToBot();
+        }
+        
+        function sendBalanceToBot(){
+            try{
+                const data={
+                    action:'balance_update',
+                    user_id:USER_ID,
+                    balance:BALANCE,
+                    timestamp:Date.now()
+                };
+                tg.sendData(JSON.stringify(data));
+                console.log('💾 Баланс отправлен боту:',BALANCE);
+            }catch(e){
+                console.log('⚠️ Не удалось отправить баланс (это нормально в браузере)');
+            }
         }
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
         function updateCalculations(){const b=getBetAmount();document.getElementById('maxWinCalc').textContent=`+${(b*100).toLocaleString('ru-RU')} 💎`;document.getElementById('maxLose').textContent=`-${b.toLocaleString('ru-RU')} 💎`;}
@@ -339,7 +357,7 @@
                 await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
                 // 70% шанс что все 3 символа будут ОДИНАКОВЫМИ!
                 let res;
-                if(Math.random()<0.45){
+                if(Math.random()<0.35){
                     // Выигрыш - все 3 одинаковые
                     const symbol=getWeightedSymbol();
                     res=[symbol,symbol,symbol];
@@ -420,3 +438,4 @@
     </script>
 </body>
 </html>
+
