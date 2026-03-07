@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -277,10 +278,32 @@
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
             
-            // Сохраняем в localStorage для синхронизации между сессиями
+            // Сохраняем в localStorage
             try{
                 localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
             }catch(e){}
+            
+            // Отправляем боту через postEvent (НЕ закрывает WebApp!)
+            updateBalanceInBot();
+        }
+        
+        function updateBalanceInBot(){
+            try{
+                // Используем postEvent вместо sendData - это НЕ закрывает WebApp
+                if(window.Telegram && window.Telegram.WebApp){
+                    window.Telegram.WebApp.postEvent('web_app_data_send', {
+                        data: JSON.stringify({
+                            action: 'balance_sync',
+                            user_id: USER_ID,
+                            balance: BALANCE,
+                            timestamp: Date.now()
+                        })
+                    });
+                    console.log('💾 Баланс синхронизирован с ботом:', BALANCE);
+                }
+            }catch(e){
+                console.log('⚠️ Синхронизация доступна только в Telegram');
+            }
         }
 
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
