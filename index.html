@@ -398,6 +398,13 @@
             try{
                 console.log('🏠 Выход из казино');
                 console.log('💰 Финальный баланс:',BALANCE.toLocaleString('ru-RU'));
+                
+                // Сохраняем в localStorage на всякий случай
+                try{
+                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                    console.log('💾 Сохранено в localStorage:', BALANCE);
+                }catch(e){}
+                
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
                 const data={
@@ -411,13 +418,21 @@
                     stats:stats,
                     timestamp:Date.now()
                 };
-                console.log('📤 Отправка данных боту...');
+                
+                console.log('📤 Отправка данных боту:', JSON.stringify(data));
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Данные отправлены! Закрытие...');
-                tg.close();
+                console.log('✅ Данные отправлены!');
+                
+                // Задержка 1 секунда чтобы данные успели отправиться
+                setTimeout(function(){
+                    console.log('🚪 Закрытие казино...');
+                    tg.close();
+                }, 1000);
+                
             }catch(e){
                 console.error('❌ Ошибка отправки:',e);
-                tg.close();
+                // Даже при ошибке пытаемся закрыть через секунду
+                setTimeout(function(){tg.close();}, 1000);
             }
         }
         
@@ -429,3 +444,4 @@
     </script>
 </body>
 </html>
+
