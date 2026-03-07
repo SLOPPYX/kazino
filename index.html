@@ -191,11 +191,26 @@
                 const params=new URLSearchParams(window.location.search);
                 USER_ID=parseInt(params.get('user_id'))||0;
                 CUSTOM_ID=params.get('custom_id')||'';
-                BALANCE=parseInt(params.get('tokens'))||0;
+                
+                // Получаем баланс от бота
+                const botBalance=parseInt(params.get('tokens'))||0;
+                
+                // Проверяем localStorage
+                const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
+                
+                if(savedBalance){
+                    const localBalance=parseInt(savedBalance);
+                    // Берём МАКСИМУМ из двух источников
+                    BALANCE=Math.max(botBalance, localBalance);
+                    console.log('💰 Бот:',botBalance,'| 💾 Local:',localBalance,'| ✅ Используется:',BALANCE);
+                }else{
+                    BALANCE=botBalance;
+                    console.log('💰 Баланс от бота:',BALANCE);
+                }
+                
                 INITIAL_BALANCE=BALANCE;
                 
                 selectRandomBonusSymbols();
-                console.log('💰 Баланс от бота:',BALANCE,'токенов');
                 
                 const o0=params.get('o0');const o1=params.get('o1');const o2=params.get('o2');const o3=params.get('o3');
                 const o4=params.get('o4');const o5=params.get('o5');const o6=params.get('o6');const o7=params.get('o7');
@@ -444,4 +459,5 @@
     </script>
 </body>
 </html>
+
 
