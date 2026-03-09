@@ -192,20 +192,21 @@
                 USER_ID=parseInt(params.get('user_id'))||0;
                 CUSTOM_ID=params.get('custom_id')||'';
                 
-                // Получаем баланс от бота
-                const botBalance=parseInt(params.get('tokens'))||0;
+                // БОТ - ГЛАВНЫЙ ИСТОЧНИК ПРАВДЫ!
+                const tokensParam=params.get('tokens');
                 
-                // Проверяем localStorage
-                const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
-                
-                if(savedBalance){
-                    const localBalance=parseInt(savedBalance);
-                    // Берём МАКСИМУМ из двух источников
-                    BALANCE=Math.max(botBalance, localBalance);
-                    console.log('💰 Бот:',botBalance,'| 💾 Local:',localBalance,'| ✅ Используется:',BALANCE);
-                }else{
-                    BALANCE=botBalance;
+                if(tokensParam !== null){
+                    // Бот передал баланс - ИСПОЛЬЗУЕМ ЕГО!
+                    BALANCE=parseInt(tokensParam);
                     console.log('💰 Баланс от бота:',BALANCE);
+                    
+                    // Обновляем localStorage новым балансом
+                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                }else{
+                    // Бот НЕ передал - используем localStorage как резерв
+                    const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
+                    BALANCE=savedBalance ? parseInt(savedBalance) : 0;
+                    console.log('💾 Баланс из localStorage (резерв):',BALANCE);
                 }
                 
                 INITIAL_BALANCE=BALANCE;
@@ -459,5 +460,6 @@
     </script>
 </body>
 </html>
+
 
 
