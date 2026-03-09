@@ -293,13 +293,13 @@
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
             
-            // Сохраняем в localStorage - это ЕДИНСТВЕННЫЙ способ синхронизации
+            // Сохраняем в localStorage
             try{
                 localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
-                console.log('💾 Баланс сохранён в localStorage:', BALANCE);
-            }catch(e){
-                console.error('Ошибка сохранения:', e);
-            }
+            }catch(e){}
+            
+            // МГНОВЕННАЯ синхронизация с ботом после каждого спина!
+            syncBalanceViaAPI();
         }
 
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
@@ -456,33 +456,34 @@
         let lastSyncedBalance = BALANCE;
         
         async function syncBalanceViaAPI(){
-            if(BALANCE === lastSyncedBalance) return; // Баланс не изменился
+            // Проверяем чтобы не отправлять дубликаты
+            if(BALANCE === lastSyncedBalance) return;
             
             try{
                 // Отправляем команду боту через Telegram API
                 const message = `/casino_update ${USER_ID} ${BALANCE}`;
                 
-                const response = await fetch(BOT_API_URL, {
+                // Не ждём ответа - отправляем асинхронно
+                fetch(BOT_API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         chat_id: USER_ID,
                         text: message
                     })
+                }).then(response => {
+                    if(response.ok){
+                        console.log('⚡ МГНОВЕННО: Баланс синхронизирован:', BALANCE);
+                        lastSyncedBalance = BALANCE;
+                    }
+                }).catch(e => {
+                    console.log('⚠️ Используется localStorage');
                 });
                 
-                if(response.ok){
-                    console.log('✅ API: Баланс синхронизирован через API:', BALANCE);
-                    lastSyncedBalance = BALANCE;
-                    
-                    // Также сохраняем в localStorage
-                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
-                }else{
-                    console.log('⚠️ API: Ошибка отправки');
-                }
+                // Сохраняем в localStorage сразу
+                localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                
             }catch(e){
-                console.log('⚠️ API недоступен, используется localStorage');
-                // Fallback на localStorage
                 localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
             }
         }
@@ -492,10 +493,9 @@
             if(!isSpinning && BALANCE !== lastSyncedBalance){
                 await syncBalanceViaAPI();
             }
-        }, 5000);
+        }, 1000); // Каждую секунду!
         
         console.log('🎰 Казино запущено. Баланс автоматически сохраняется!');
     </script>
 </body>
 </html>
-
