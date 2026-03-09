@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -364,7 +365,7 @@
                 await new Promise(r=>setTimeout(r,spinMode==='fast'?800:1500));
                 // 70% шанс что все 3 символа будут ОДИНАКОВЫМИ!
                 let res;
-                if(Math.random()<0.35){
+                if(Math.random()<0.25){
                     // Выигрыш - все 3 одинаковые
                     const symbol=getWeightedSymbol();
                     res=[symbol,symbol,symbol];
@@ -439,16 +440,16 @@
                 tg.sendData(JSON.stringify(data));
                 console.log('✅ Данные отправлены!');
                 
-                // Задержка 1 секунда чтобы данные успели отправиться
+                // Задержка 2 секунды чтобы БОТ успел обработать данные
                 setTimeout(function(){
                     console.log('🚪 Закрытие казино...');
                     tg.close();
-                }, 1000);
+                }, 2000);
                 
             }catch(e){
                 console.error('❌ Ошибка отправки:',e);
                 // Даже при ошибке пытаемся закрыть через секунду
-                setTimeout(function(){tg.close();}, 1000);
+                setTimeout(function(){tg.close();}, 2000);
             }
         }
         
