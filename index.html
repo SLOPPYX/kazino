@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -416,11 +415,9 @@
                 console.log('🏠 Выход из казино');
                 console.log('💰 Финальный баланс:',BALANCE.toLocaleString('ru-RU'));
                 
-                // Сохраняем в localStorage на всякий случай
-                try{
-                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
-                    console.log('💾 Сохранено в localStorage:', BALANCE);
-                }catch(e){}
+                // Сохраняем в localStorage - ОН будет использован при входе
+                localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                console.log('💾 Сохранено в localStorage:', BALANCE);
                 
                 const change=BALANCE-INITIAL_BALANCE;
                 const percent=INITIAL_BALANCE>0?((change/INITIAL_BALANCE)*100).toFixed(1):0;
@@ -436,20 +433,19 @@
                     timestamp:Date.now()
                 };
                 
-                console.log('📤 Отправка данных боту:', JSON.stringify(data));
+                console.log('📤 Отправка данных боту');
                 tg.sendData(JSON.stringify(data));
-                console.log('✅ Данные отправлены!');
+                console.log('✅ Данные отправлены! Закрытие через 3 сек...');
                 
-                // Задержка 2 секунды чтобы БОТ успел обработать данные
+                // ЖДЕМ 3 СЕКУНДЫ чтобы бот гарантированно сохранил
                 setTimeout(function(){
-                    console.log('🚪 Закрытие казино...');
+                    console.log('🚪 Закрытие казино');
                     tg.close();
-                }, 2000);
+                }, 3000);
                 
             }catch(e){
-                console.error('❌ Ошибка отправки:',e);
-                // Даже при ошибке пытаемся закрыть через секунду
-                setTimeout(function(){tg.close();}, 2000);
+                console.error('❌ Ошибка:',e);
+                setTimeout(function(){tg.close();}, 3000);
             }
         }
         
@@ -461,6 +457,3 @@
     </script>
 </body>
 </html>
-
-
-
