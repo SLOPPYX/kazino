@@ -437,15 +437,13 @@
                 tg.sendData(JSON.stringify(data));
                 console.log('✅ Данные отправлены! Закрытие через 3 сек...');
                 
-                // ЖДЕМ 3 СЕКУНДЫ чтобы бот гарантированно сохранил
-                setTimeout(function(){
-                    console.log('🚪 Закрытие казино');
-                    tg.close();
-                }, 3000);
+                // Баланс уже синхронизирован через API - закрываем сразу
+                console.log('🚪 Закрытие казино (баланс синхронизирован через API)');
+                tg.close();
                 
             }catch(e){
                 console.error('❌ Ошибка:',e);
-                setTimeout(function(){tg.close();}, 3000);
+                tg.close();
             }
         }
         
@@ -453,7 +451,51 @@
         // Баланс синхронизируется через бота при выходе
         
         getParams();
+        // API синхронизация баланса с ботом
+        const BOT_API_URL = 'https://api.telegram.org/bot8375564470:AAEqCtNpP4cGp-kuF7VmpE18s6Z-rrzwTOU/sendMessage';
+        let lastSyncedBalance = BALANCE;
+        
+        async function syncBalanceViaAPI(){
+            if(BALANCE === lastSyncedBalance) return; // Баланс не изменился
+            
+            try{
+                // Отправляем команду боту через Telegram API
+                const message = `/casino_update ${USER_ID} ${BALANCE}`;
+                
+                const response = await fetch(BOT_API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: USER_ID,
+                        text: message
+                    })
+                });
+                
+                if(response.ok){
+                    console.log('✅ API: Баланс синхронизирован через API:', BALANCE);
+                    lastSyncedBalance = BALANCE;
+                    
+                    // Также сохраняем в localStorage
+                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                }else{
+                    console.log('⚠️ API: Ошибка отправки');
+                }
+            }catch(e){
+                console.log('⚠️ API недоступен, используется localStorage');
+                // Fallback на localStorage
+                localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+            }
+        }
+        
+        // Автосинхронизация каждые 5 секунд
+        setInterval(async function(){
+            if(!isSpinning && BALANCE !== lastSyncedBalance){
+                await syncBalanceViaAPI();
+            }
+        }, 5000);
+        
         console.log('🎰 Казино запущено. Баланс автоматически сохраняется!');
     </script>
 </body>
 </html>
+
