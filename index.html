@@ -293,13 +293,11 @@
         function updateBalance(){
             document.getElementById('balance').textContent=`${BALANCE.toLocaleString('ru-RU')} 💎`;
             
-            // Сохраняем в localStorage
+            // Сохраняем в localStorage - ГЛАВНЫЙ ИСТОЧНИК
             try{
                 localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                lastSyncedBalance = BALANCE;
             }catch(e){}
-            
-            // МГНОВЕННАЯ синхронизация с ботом после каждого спина!
-            syncBalanceViaAPI();
         }
 
         function animateBalance(w){const e=document.getElementById('balance');e.classList.remove('win-animation','lose-animation');void e.offsetWidth;e.classList.add(w?'win-animation':'lose-animation');}
