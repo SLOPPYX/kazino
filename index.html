@@ -296,7 +296,9 @@
             // Сохраняем в localStorage - ГЛАВНЫЙ ИСТОЧНИК
             try{
                 localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
-                lastSyncedBalance = BALANCE;
+                
+                // Немедленная скрытая синхронизация
+                silentSyncToBot();
             }catch(e){}
         }
 
