@@ -255,8 +255,15 @@
                 }else{
                     // Бот НЕ передал - используем localStorage как резерв
                     const savedBalance=localStorage.getItem('casino_balance_'+USER_ID);
-                    BALANCE=savedBalance ? parseInt(savedBalance) : 0;
-                    console.log('💾 Баланс из localStorage (резерв):',BALANCE);
+                    BALANCE=savedBalance ? parseInt(savedBalance) : 100000; // Стартовый баланс если нет данных
+                    console.log('💾 Баланс из localStorage:',BALANCE);
+                }
+                
+                // Если баланс всё равно 0 - даём стартовый
+                if(BALANCE === 0){
+                    BALANCE = 100000;
+                    localStorage.setItem('casino_balance_'+USER_ID, BALANCE.toString());
+                    console.log('🎁 Стартовый баланс:', BALANCE);
                 }
                 
                 INITIAL_BALANCE=BALANCE;
